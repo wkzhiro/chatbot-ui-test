@@ -20,6 +20,7 @@ export interface HomeContextProps {
     conversation: Conversation,
     data: KeyValuePair,
   ) => void;
+  setJWT: (jwt: string) => void;  // JWTを設定する関数
 }
 
 const HomeContext = createContext<HomeContextProps>(undefined!);

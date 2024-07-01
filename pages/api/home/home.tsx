@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useQuery } from 'react-query';
-
+import { AuthenticationResult } from "@azure/msal-node";
+import axios from "axios";
+import { useSearchParams } from "next/navigation";
 import { GetServerSideProps } from 'next';
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
@@ -70,6 +72,7 @@ const Home = ({
       selectedConversation,
       prompts,
       temperature,
+      jwt,  // JWTの状態を取得
     },
     dispatch,
   } = contextValue;
@@ -90,6 +93,33 @@ const Home = ({
     },
     { enabled: true, refetchOnMount: false },
   );
+
+  const setJWT = (jwt: string) => {
+    dispatch({ field: 'jwt', value: jwt });
+    localStorage.setItem('jwt', jwt);
+  };
+
+  // jwtの認証のためのコード
+  const params = useSearchParams();
+  const [code, _] = useState(params.get("code"));
+
+  useEffect(() => {
+      // ローカルストレージからJWTトークンを取得
+      const storedJwt = localStorage.getItem('jwt');
+      if (storedJwt) {
+          setJWT(storedJwt);
+      } else if (code) {
+          (async () => {
+              // 認証をかける
+              const url = "/api/auth/verify";
+              const { data }: { data: AuthenticationResult } = await axios.post(url, {
+                  code
+              });
+              const jwt = data.accessToken;
+              setJWT(jwt);
+          })();
+      }
+  }, [code]);
 
   useEffect(() => {
     if (data) dispatch({ field: 'models', value: data });
@@ -215,7 +245,6 @@ const Home = ({
       ...conversation,
       [data.key]: data.value,
     };
-
     const { single, all } = updateConversation(
       updatedConversation,
       conversations,
@@ -260,6 +289,7 @@ const Home = ({
     }
 
     const apiKey = localStorage.getItem('apiKey');
+    // const apiKey = process.env.OPENAI_API_KEY;
 
     if (serverSideApiKeyIsSet) {
       dispatch({ field: 'apiKey', value: '' });
@@ -357,6 +387,7 @@ const Home = ({
         handleUpdateFolder,
         handleSelectConversation,
         handleUpdateConversation,
+        setJWT,  // setJWT関数を提供
       }}
     >
       <Head>
