@@ -32,8 +32,25 @@ export const OpenAIStream = async (
 ) => {
   let url = `${OPENAI_API_HOST}/v1/chat/completions`;
   if (OPENAI_API_TYPE === 'azure') {
-    url = `${OPENAI_API_HOST}/openai/deployments/${AZURE_DEPLOYMENT_ID}/chat/completions?api-version=${OPENAI_API_VERSION}`;
+    url = `${OPENAI_API_HOST}/openai/deployments/${model.id}/chat/completions?api-version=${OPENAI_API_VERSION}`;
   }
+
+  const requestBody = {
+    model: model.id,
+    // ...(OPENAI_API_TYPE === 'openai' && { model: model.id }),
+    // ...(OPENAI_API_TYPE === 'azure' && { model: AZURE_DEPLOYMENT_ID }),
+    messages: [
+      {
+        role: 'system',
+        content: systemPrompt,
+      },
+      ...messages,
+    ],
+    max_tokens: 1000,
+    temperature: temperature,
+    stream: true,
+  };
+
   const res = await fetch(url, {
     headers: {
       'Content-Type': 'application/json',
@@ -48,19 +65,7 @@ export const OpenAIStream = async (
       }),
     },
     method: 'POST',
-    body: JSON.stringify({
-      ...(OPENAI_API_TYPE === 'openai' && {model: model.id}),
-      messages: [
-        {
-          role: 'system',
-          content: systemPrompt,
-        },
-        ...messages,
-      ],
-      max_tokens: 1000,
-      temperature: temperature,
-      stream: true,
-    }),
+    body: JSON.stringify(requestBody),
   });
 
   const encoder = new TextEncoder();
