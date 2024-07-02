@@ -1,8 +1,8 @@
 import { DEFAULT_SYSTEM_PROMPT, DEFAULT_TEMPERATURE } from '@/utils/app/const';
 import { OpenAIError, OpenAIStream } from '@/utils/server';
+import { saveToCosmosDB } from './cosmos'; // インポートを追加
 
 import { ChatBody, Message } from '@/types/chat';
-
 // @ts-expect-error
 import wasm from '../../node_modules/@dqbd/tiktoken/lite/tiktoken_bg.wasm?module';
 
@@ -50,17 +50,52 @@ const handler = async (req: Request): Promise<Response> => {
       messagesToSend = [message, ...messagesToSend];
     }
 
-    encoding.free();
-
     const stream = await OpenAIStream(model, promptToSend, temperatureToUse, key, messagesToSend);
 
-    return new Response(stream);
+    // Create a TransformStream to tap into the stream
+    const { readable, writable } = new TransformStream();
+    const writer = writable.getWriter();
+    const reader = stream.getReader();
+    const decoder = new TextDecoder();
+    let responseText = '';
+    
+    (async () => {
+      let done = false;
+      while (!done) {
+        const { value, done: readerDone } = await reader.read();
+        done = readerDone;
+        if (value) {
+          responseText += decoder.decode(value, { stream: !done });
+          writer.write(value);
+        }
+      }
+      writer.close();
+
+      const response_tokens = encoding.encode(responseText);
+      const responseTokenCount = response_tokens.length;
+
+      // Save to Cosmos DB
+      const item = {
+        userId: 1,
+        id: `chat-${Date.now()}`, // 任意の一意なIDを生成
+        promptTokenCount: tokenCount,
+        responseTokenCount: responseTokenCount,
+        timestamp: new Date().toISOString()
+      };
+
+      await saveToCosmosDB(item);
+
+      encoding.free();
+    })();
+
+    return new Response(readable);
   } catch (error) {
-    console.error(error);
-    if (error instanceof OpenAIError) {
-      return new Response('Error', { status: 500, statusText: error.message });
+    const anyError = error as any; // errorをany型にキャスト
+    console.error(anyError);
+    if (anyError instanceof OpenAIError) {
+      return new Response(JSON.stringify({ error: anyError.message }), { status: 500 });
     } else {
-      return new Response('Error', { status: 500 });
+      return new Response(JSON.stringify({ error: 'Internal Server Error' }), { status: 500 });
     }
   }
 };
