@@ -1,7 +1,7 @@
 import { Message } from '@/types/chat';
 import { OpenAIModel } from '@/types/openai';
 
-import { AZURE_DEPLOYMENT_ID, OPENAI_API_HOST, OPENAI_API_TYPE, OPENAI_API_VERSION, OPENAI_ORGANIZATION } from '../app/const';
+import { AZURE_DEPLOYMENT_ID, OPENAI_API_HOST, OPENAI_API_TYPE, OPENAI_API_VERSION, OPENAI_ORGANIZATION, APIM_URL, SUBSCRIPTION_KEY } from '../app/const';
 
 import {
   ParsedEvent,
@@ -32,7 +32,8 @@ export const OpenAIStream = async (
 ) => {
   let url = `${OPENAI_API_HOST}/v1/chat/completions`;
   if (OPENAI_API_TYPE === 'azure') {
-    url = `${OPENAI_API_HOST}/openai/deployments/${model.id}/chat/completions?api-version=${OPENAI_API_VERSION}`;
+    // url = `${OPENAI_API_HOST}/openai/deployments/${model.id}/chat/completions?api-version=${OPENAI_API_VERSION}`;
+    url = `${APIM_URL}/deployments/${model.id}/chat/completions?api-version=${OPENAI_API_VERSION}`;
   }
 
   const requestBody = {
@@ -53,16 +54,18 @@ export const OpenAIStream = async (
 
   const res = await fetch(url, {
     headers: {
+      'Authorization': 'Bearer ' + key, //jwtを使った認証
       'Content-Type': 'application/json',
-      ...(OPENAI_API_TYPE === 'openai' && {
-        Authorization: `Bearer ${key ? key : process.env.OPENAI_API_KEY}`
-      }),
-      ...(OPENAI_API_TYPE === 'azure' && {
-        'api-key': `${key ? key : process.env.OPENAI_API_KEY}`
-      }),
-      ...((OPENAI_API_TYPE === 'openai' && OPENAI_ORGANIZATION) && {
-        'OpenAI-Organization': OPENAI_ORGANIZATION,
-      }),
+      'Ocp-Apim-Subscription-Key': SUBSCRIPTION_KEY,
+      // ...(OPENAI_API_TYPE === 'openai' && {
+      //   Authorization: `Bearer ${key ? key : process.env.OPENAI_API_KEY}`
+      // }),
+      // ...(OPENAI_API_TYPE === 'azure' && {
+      //   'api-key': `${key ? key : process.env.OPENAI_API_KEY}`
+      // }),
+      // ...((OPENAI_API_TYPE === 'openai' && OPENAI_ORGANIZATION) && {
+      //   'OpenAI-Organization': OPENAI_ORGANIZATION,
+      // }),
     },
     method: 'POST',
     body: JSON.stringify(requestBody),

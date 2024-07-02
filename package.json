@@ -12,6 +12,7 @@
     "coverage": "vitest run --coverage"
   },
   "dependencies": {
+    "@azure/cosmos": "^4.0.0",
     "@azure/msal-node": "^2.9.2",
     "@dqbd/tiktoken": "^1.0.2",
     "@tabler/icons-react": "^2.9.0",

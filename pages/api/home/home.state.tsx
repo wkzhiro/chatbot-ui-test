@@ -27,6 +27,7 @@ export interface HomeInitialState {
   defaultModelId: OpenAIModelID | undefined;
   serverSideApiKeyIsSet: boolean;
   serverSidePluginKeysSet: boolean;
+  // serverSideJwtSet: boolean;
   jwt: string;  // JWTを追加
 }
 
@@ -52,5 +53,6 @@ export const initialState: HomeInitialState = {
   defaultModelId: undefined,
   serverSideApiKeyIsSet: false,
   serverSidePluginKeysSet: false,
+  // serverSideJwtSet: false,
   jwt: '',  // 初期値を追加
 };
