@@ -1,4 +1,4 @@
-import { OPENAI_API_HOST, OPENAI_API_TYPE, OPENAI_API_VERSION, OPENAI_ORGANIZATION, AZURE_DEPLOYMENT_ID} from '@/utils/app/const';
+import { OPENAI_API_HOST, OPENAI_API_TYPE, OPENAI_API_VERSION, OPENAI_ORGANIZATION, AZURE_DEPLOYMENT_ID, OPENAI_API_KEY, APIM_URL, SUBSCRIPTION_KEY} from '@/utils/app/const';
 
 import { OpenAIModel, OpenAIModelID, OpenAIModels } from '@/types/openai';
 
@@ -11,24 +11,28 @@ const handler = async (req: Request): Promise<Response> => {
     const { key } = (await req.json()) as {
       key: string;
     };
-
+    // console.log("jwt : ",key)
     let url = `${OPENAI_API_HOST}/v1/models`;
     if (OPENAI_API_TYPE === 'azure') {
-      url = `${OPENAI_API_HOST}/openai/deployments?api-version=${OPENAI_API_VERSION}`;
+      // url = `${OPENAI_API_HOST}/openai/deployments?api-version=${OPENAI_API_VERSION}`;
+      url = `${APIM_URL}/deployments?api-version=${OPENAI_API_VERSION}`;
     }
+    // console.log(url);
 
     const response = await fetch(url, {
       headers: {
+        'Authorization': 'Bearer ' + key, //jwtを使った認証
         'Content-Type': 'application/json',
-        ...(OPENAI_API_TYPE === 'openai' && {
-          Authorization: `Bearer ${key ? key : process.env.OPENAI_API_KEY}`
-        }),
-        ...(OPENAI_API_TYPE === 'azure' && {
-          'api-key': `${key ? key : process.env.OPENAI_API_KEY}`
-        }),
-        ...((OPENAI_API_TYPE === 'openai' && OPENAI_ORGANIZATION) && {
-          'OpenAI-Organization': OPENAI_ORGANIZATION,
-        }),
+        'Ocp-Apim-Subscription-Key': SUBSCRIPTION_KEY
+        // ...(OPENAI_API_TYPE === 'openai' && {
+        //   Authorization: `Bearer ${key ? key : OPENAI_API_KEY}`
+        // }),
+        // ...(OPENAI_API_TYPE === 'azure' && {
+        //   'api-key': `${key ? key : OPENAI_API_KEY}`
+        // }),
+        // ...((OPENAI_API_TYPE === 'openai' && OPENAI_ORGANIZATION) && {
+        //   'OpenAI-Organization': OPENAI_ORGANIZATION,
+        // }),
       },
     });
 
@@ -51,6 +55,7 @@ const handler = async (req: Request): Promise<Response> => {
     const models: OpenAIModel[] = json.data
       .map((model: any) => {
         const model_name = (OPENAI_API_TYPE === 'azure') ? model.model : model.id;
+        console.log("model_name : ",model_name)
         for (const [key, value] of Object.entries(OpenAIModelID)) {
           if (value === model_name) {
             return {

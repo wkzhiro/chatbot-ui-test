@@ -19,3 +19,12 @@ export const OPENAI_ORGANIZATION =
 
 export const AZURE_DEPLOYMENT_ID =
   process.env.AZURE_DEPLOYMENT_ID || '';
+
+export const OPENAI_API_KEY =
+  process.env.OPENAI_API_KEY || '';
+
+export const APIM_URL =
+  process.env.APIM_URL || '';
+
+export const SUBSCRIPTION_KEY =
+  process.env.SUBSCRIPTION_KEY || '';

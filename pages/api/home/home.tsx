@@ -79,20 +79,20 @@ const Home = ({
 
   const stopConversationRef = useRef<boolean>(false);
 
-  const { data, error, refetch } = useQuery(
-    ['GetModels', apiKey, serverSideApiKeyIsSet],
-    ({ signal }) => {
-      if (!apiKey && !serverSideApiKeyIsSet) return null;
+  // const { data, error, refetch } = useQuery(
+  //   ['GetModels', apiKey, serverSideApiKeyIsSet],
+  //   ({ signal }) => {
+  //     if (!apiKey && !serverSideApiKeyIsSet) return null;
 
-      return getModels(
-        {
-          key: apiKey,
-        },
-        signal,
-      );
-    },
-    { enabled: true, refetchOnMount: false },
-  );
+  //     return getModels(
+  //       {
+  //         key: apiKey,
+  //       },
+  //       signal,
+  //     );
+  //   },
+  //   { enabled: true, refetchOnMount: false },
+  // );
 
   const setJWT = (jwt: string) => {
     dispatch({ field: 'jwt', value: jwt });
@@ -120,6 +120,21 @@ const Home = ({
           })();
       }
   }, [code]);
+
+  const { data, error, refetch } = useQuery(
+    ['GetModels', jwt],
+    ({ signal }) => {
+      if (!jwt) return null;
+
+      return getModels(
+        {
+          key: jwt,
+        },
+        signal,
+      );
+    },
+    { enabled: true, refetchOnMount: false },
+  );
 
   useEffect(() => {
     if (data) dispatch({ field: 'models', value: data });

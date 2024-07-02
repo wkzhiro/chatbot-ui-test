@@ -53,6 +53,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
       modelError,
       loading,
       prompts,
+      jwt,
     },
     handleUpdateConversation,
     dispatch: homeDispatch,
@@ -96,7 +97,8 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         const chatBody: ChatBody = {
           model: updatedConversation.model,
           messages: updatedConversation.messages,
-          key: apiKey,
+          // key: apiKey,
+          key: jwt,
           prompt: updatedConversation.prompt,
           temperature: updatedConversation.temperature,
         };
@@ -251,6 +253,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
       pluginKeys,
       selectedConversation,
       stopConversationRef,
+      jwt,
     ],
   );
 
