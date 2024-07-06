@@ -1,7 +1,7 @@
 # Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
 # More GitHub Actions for Azure: https://github.com/Azure/actions
 
-name: Build and deploy Node.js app to Azure Web App - chatbot-ui-sk
+name: Build and deploy Node.js app to Azure Web App - chatbotui-swat-saka
 
 on:
   push:
@@ -26,9 +26,15 @@ jobs:
           npm install
           npm run build --if-present
           npm run test --if-present
+      - name: Copy artifact for deployment job
+        run: |
+          mkdir deploy
+          cp -r ./.next/standalone/. ./deploy
+          cp -r ./public ./deploy
+          cp -r ./.next/static/. ./deploy/.next/static
 
       - name: Zip artifact for deployment
-        run: zip release.zip ./* -r
+        run: zip release.zip ./deploy -r
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v3
@@ -57,15 +63,15 @@ jobs:
       - name: Login to Azure
         uses: azure/login@v1
         with:
-          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID_424E6491E2A64943AE44BF8ED3010605 }}
-          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID_158CBC49FC5E43AF9C2B1588EBD345E9 }}
-          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_59810AF117F6480A8A970541B7A08411 }}
+          client-id: ${{ secrets.AZUREAPPSERVICE_CLIENTID}}
+          tenant-id: ${{ secrets.AZUREAPPSERVICE_TENANTID}}
+          subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID}}
 
       - name: 'Deploy to Azure Web App'
         id: deploy-to-webapp
         uses: azure/webapps-deploy@v2
         with:
-          app-name: 'chatbot-ui-sk'
+          app-name: 'chatbotui-swat-saka'
           slot-name: 'Production'
-          package: .
+          package: ./deploy
           
