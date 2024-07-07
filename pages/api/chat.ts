@@ -1,6 +1,7 @@
 import { DEFAULT_SYSTEM_PROMPT, DEFAULT_TEMPERATURE } from '@/utils/app/const';
 import { OpenAIError, OpenAIStream } from '@/utils/server';
 import { saveToCosmosDB } from './cosmos'; // インポートを追加
+import { jwtDecode } from "jwt-decode";
 
 import { ChatBody, Message } from '@/types/chat';
 // @ts-expect-error
@@ -13,9 +14,31 @@ export const config = {
   runtime: 'edge',
 };
 
+// JWTトークンのデコード結果の型を定義
+interface DecodedToken {
+    oid: string;
+    sub: string;
+    preferred_username: string;
+    // 他のフィールドを必要に応じて追加
+  }
+
+
 const handler = async (req: Request): Promise<Response> => {
   try {
     const { model, messages, key, prompt, temperature } = (await req.json()) as ChatBody;
+    // console.log("log", key)
+    //   // JWTトークンをデコード
+    //   const decodedToken = jwtDecode<DecodedToken>(key);
+    //   console.log("log", decodedToken)
+    //   // `oid`フィールドを取得
+    //   const oid = decodedToken.oid;
+    //   // console.log("OID:", oid);
+    //   // console.log("OID:", oid);
+    
+    //  try {
+    //  } catch (error) {
+    //   console.error("Error decoding JWT token:", error);
+    //  }
 
     await init((imports) => WebAssembly.instantiate(wasm, imports));
     const encoding = new Tiktoken(
@@ -74,16 +97,17 @@ const handler = async (req: Request): Promise<Response> => {
       const response_tokens = encoding.encode(responseText);
       const responseTokenCount = response_tokens.length;
 
-      // Save to Cosmos DB
-      const item = {
-        userId: 1,
-        id: `chat-${Date.now()}`, // 任意の一意なIDを生成
-        promptTokenCount: tokenCount,
-        responseTokenCount: responseTokenCount,
-        timestamp: new Date().toISOString()
-      };
+      //// test : Save to Cosmos DB
+      // const item = {
+      //  userid:oid,
+      //   userId: 1,
+      //   id: `chat-${Date.now()}`, // 任意の一意なIDを生成
+      //   promptTokenCount: tokenCount,
+      //   responseTokenCount: responseTokenCount,
+      //   timestamp: new Date().toISOString()
+      // };
 
-      await saveToCosmosDB(item);
+      // await saveToCosmosDB(item);
 
       encoding.free();
     })();

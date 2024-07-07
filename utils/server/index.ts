@@ -71,6 +71,9 @@ export const OpenAIStream = async (
     body: JSON.stringify(requestBody),
   });
 
+  console.log("response_chat",requestBody)
+
+
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
 

@@ -49,6 +49,14 @@ interface Props {
   defaultModelId: OpenAIModelID;
 }
 
+// JWTトークンのデコード結果の型を定義
+interface DecodedToken {
+  oid: string;
+  sub: string;
+  preferred_username: string;
+  // 他のフィールドを必要に応じて追加
+}
+
 const Home = ({
   serverSideApiKeyIsSet,
   serverSidePluginKeysSet,
@@ -102,6 +110,7 @@ const Home = ({
   // jwtの認証のためのコード
   const params = useSearchParams();
   const [code, _] = useState(params.get("code"));
+  // console.log("params",params.get("code"))
 
   useEffect(() => {
       // ローカルストレージからJWTトークンを取得
@@ -346,19 +355,67 @@ const Home = ({
     if (prompts) {
       dispatch({ field: 'prompts', value: JSON.parse(prompts) });
     }
+    
+    const fetchData = async () => {
+      try {
+        const key = localStorage.getItem('jwt');
+        console.log("ihgdfiaajfokapofgjfopsjg",key)
+        const response = await fetch('/api/readallconversation_cosmos');
+        console.log("fetch host.tsx")
+        if (!response.ok) {
+          throw new Error('Failed to fetch data from server');
+        }
+        const conversationHistory = await response.json(); // APIから取得したデータ
+        const cleanedConversationHistory = cleanConversationHistory(conversationHistory);
+        dispatch({ field: 'conversations', value: cleanedConversationHistory }); // 取得したデータを状態に設定
 
-    const conversationHistory = localStorage.getItem('conversationHistory');
-    if (conversationHistory) {
-      const parsedConversationHistory: Conversation[] =
-        JSON.parse(conversationHistory);
-      const cleanedConversationHistory = cleanConversationHistory(
-        parsedConversationHistory,
-      );
+        //////////////////////////////////////////
+        // selectedConversationからidを抽出し,上書きしたい //
+        const selectedConversationString = localStorage.getItem('selectedConversation');
+        console.log("selectedConversationString",selectedConversationString)
+        
+          // if (selectedConversationString) {
+          //   // 文字列をオブジェクトにパース
+          //   console.log("testtest")
+          //   const selectedConversation = JSON.parse(selectedConversationString);
+          //   if (selectedConversation && 'id' in selectedConversation) {
+          //       console.log("Selected conversation ID:", selectedConversation.id);
+          //       // 特定のIDを検索
+          //       const targetId = selectedConversation.id;
+          //       // 特定のIDに一致するオブジェクトをフィルタリング
+          //       const matchingConversation = conversations.find(conversationHistory => conversationHistory.id === targetId);
+  
+          //       // 結果のログ出力
+          //       console.log("matchingConversation",matchingConversation);
+          //       localStorage.setItem('selectedConversation', JSON.stringify(matchingConversation));
+          //       }
+          //     } else {
+          //     console.log("No selected conversation string found."); 
 
-      dispatch({ field: 'conversations', value: cleanedConversationHistory });
-    }
+          //   } 
+          
+    } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+    // fetchData関数の呼び出し
+    fetchData();
 
+    // const conversationHistory = localStorage.getItem('conversationHistory');
+    // if (conversationHistory) {
+    //   const parsedConversationHistory: Conversation[] =
+    //     JSON.parse(conversationHistory);
+    //   const cleanedConversationHistory = cleanConversationHistory(
+    //     parsedConversationHistory,
+    //   );
+
+    //   dispatch({ field: 'conversations', value: cleanedConversationHistory });
+    // }
+
+    // localstorageから「選択したActive会話」の情報を取得
     const selectedConversation = localStorage.getItem('selectedConversation');
+    console.log("select",selectedConversation)
+
     if (selectedConversation) {
       const parsedSelectedConversation: Conversation =
         JSON.parse(selectedConversation);
