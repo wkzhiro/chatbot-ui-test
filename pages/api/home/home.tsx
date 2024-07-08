@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState,useCallback } from 'react';
 import { useQuery } from 'react-query';
-import { AuthenticationResult } from "@azure/msal-node";
+import { AuthenticationResult,AccountInfo } from "@azure/msal-node";
 import axios from "axios";
 import { useSearchParams } from "next/navigation";
 import { GetServerSideProps } from 'next';
@@ -47,6 +47,14 @@ interface Props {
   serverSideApiKeyIsSet: boolean;
   serverSidePluginKeysSet: boolean;
   defaultModelId: OpenAIModelID;
+}
+
+// JWTトークンのデコード結果の型を定義
+interface DecodedToken {
+  oid: string;
+  sub: string;
+  preferred_username: string;
+  // 他のフィールドを必要に応じて追加
 }
 
 const Home = ({
@@ -102,24 +110,124 @@ const Home = ({
   // jwtの認証のためのコード
   const params = useSearchParams();
   const [code, _] = useState(params.get("code"));
+  // console.log("params",params.get("code"))
 
   useEffect(() => {
       // ローカルストレージからJWTトークンを取得
-      const storedJwt = localStorage.getItem('jwt');
-      if (storedJwt) {
-          setJWT(storedJwt);
-      } else if (code) {
-          (async () => {
-              // 認証をかける
-              const url = "/api/auth/verify";
-              const { data }: { data: AuthenticationResult } = await axios.post(url, {
-                  code
-              });
-              const jwt = data.accessToken;
-              setJWT(jwt);
-          })();
+    console.log("use_jwt");
+    const storedJwt = localStorage.getItem('jwt');
+  
+    const verifyAndFetchModels = async (storedJwt: any) => {
+      try {
+        console.log("start verifyAndFetchModels");
+        // 認証をかける
+        const url = "/api/models";
+        console.log(url, storedJwt);
+        const response = await axios.post(url, {
+          key: storedJwt,
+        });
+        
+        console.log("end verifyAndFetchModels");
+        return response.status;
+      } catch (error) {
+        console.error('Error verifying JWT:', error);
+        return false;
       }
+    };
+  
+    const handleJWTVerification = async () => {
+      console.log("start handleJWTVerification");
+      if (storedJwt) {
+        console.log("storedJwt exists");
+        const status = await verifyAndFetchModels(storedJwt);
+        if (status === 200) {
+          console.log("status 200");
+          console.log("jwt", jwt);
+          console.log("storejwt", storedJwt);
+          console.log("setjwt");
+          setJWT(storedJwt);
+        } 
+      } else if(jwt){
+        const status = await verifyAndFetchModels(jwt);
+        if (status === 200) {
+          console.log("status 200");
+          console.log("setjwt");
+          setJWT(jwt);
+        } else if(code){
+          console.log("code exists");
+          try{
+            // 認証をかける
+            const url = "/api/auth/verify";
+            console.log(url, code);
+            const { data }: { data: AuthenticationResult } = await axios.post(url, {
+              code
+            });
+            const jwt = data.accessToken;
+            setJWT(jwt);
+        }catch (error) {
+          console.error('Error verifying access token:', error);
+          return false;
+        }
+        }}else if(code){
+          console.log("code exists");
+          try{
+            // 認証をかける
+            const url = "/api/auth/verify";
+            console.log(url, code);
+            const { data }: { data: AuthenticationResult } = await axios.post(url, {
+              code
+            });
+            const jwt = data.accessToken;
+            setJWT(jwt);
+        }catch (error) {
+          console.error('Error verifying access token:', error);
+          return false;
+        }
+        };
+        console.log("storedJwt does not exist");
+      };
+  
+    handleJWTVerification();
+    console.log("handleJWTVerification called");
   }, [code]);
+
+  // jwtをリフレッシュするAPIリクエスト
+  const refreshJWT = async (account: AccountInfo) => {
+    const url = "/api/auth/verify";
+    const { data }: { data: AuthenticationResult } = await axios.put(url, {
+      account
+    });
+    const newToken = data.accessToken;
+    setJWT(newToken);
+    return newToken;
+  };
+
+  // トークンの有効期限をチェックする関数
+  const isTokenExpired = (token: string) => {
+    const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString('utf-8'));
+    console.log("expiration:",payload.exp * 1000," now:",Date.now())
+    return payload.exp * 1000 < Date.now();
+  };
+
+  const fetchModels = useCallback(async (signal?: AbortSignal) => {
+    let token = jwt;
+    if (jwt && isTokenExpired(jwt)) {
+      const storedAccount = localStorage.getItem('account');
+      if (storedAccount) {
+        const account: AccountInfo = JSON.parse(storedAccount);
+        token = await refreshJWT(account);
+      }
+    }
+
+    if (!token) return null;
+
+    return getModels(
+      {
+        key: token,
+      },
+      signal,
+    );
+  }, [jwt, getModels]);
 
   const { data, error, refetch } = useQuery(
     ['GetModels', jwt],
@@ -346,19 +454,67 @@ const Home = ({
     if (prompts) {
       dispatch({ field: 'prompts', value: JSON.parse(prompts) });
     }
+    
+    const fetchData = async () => {
+      try {
+        const key = localStorage.getItem('jwt');
+        console.log("ihgdfiaajfokapofgjfopsjg",key)
+        const response = await fetch('/api/readallconversation_cosmos');
+        console.log("fetch host.tsx")
+        if (!response.ok) {
+          throw new Error('Failed to fetch data from server');
+        }
+        const conversationHistory = await response.json(); // APIから取得したデータ
+        const cleanedConversationHistory = cleanConversationHistory(conversationHistory);
+        dispatch({ field: 'conversations', value: cleanedConversationHistory }); // 取得したデータを状態に設定
 
-    const conversationHistory = localStorage.getItem('conversationHistory');
-    if (conversationHistory) {
-      const parsedConversationHistory: Conversation[] =
-        JSON.parse(conversationHistory);
-      const cleanedConversationHistory = cleanConversationHistory(
-        parsedConversationHistory,
-      );
+        //////////////////////////////////////////
+        // selectedConversationからidを抽出し,上書きしたい //
+        const selectedConversationString = localStorage.getItem('selectedConversation');
+        console.log("selectedConversationString",selectedConversationString)
+        
+          // if (selectedConversationString) {
+          //   // 文字列をオブジェクトにパース
+          //   console.log("testtest")
+          //   const selectedConversation = JSON.parse(selectedConversationString);
+          //   if (selectedConversation && 'id' in selectedConversation) {
+          //       console.log("Selected conversation ID:", selectedConversation.id);
+          //       // 特定のIDを検索
+          //       const targetId = selectedConversation.id;
+          //       // 特定のIDに一致するオブジェクトをフィルタリング
+          //       const matchingConversation = conversations.find(conversationHistory => conversationHistory.id === targetId);
+  
+          //       // 結果のログ出力
+          //       console.log("matchingConversation",matchingConversation);
+          //       localStorage.setItem('selectedConversation', JSON.stringify(matchingConversation));
+          //       }
+          //     } else {
+          //     console.log("No selected conversation string found."); 
 
-      dispatch({ field: 'conversations', value: cleanedConversationHistory });
-    }
+          //   } 
+          
+    } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+    // fetchData関数の呼び出し
+    fetchData();
 
+    // const conversationHistory = localStorage.getItem('conversationHistory');
+    // if (conversationHistory) {
+    //   const parsedConversationHistory: Conversation[] =
+    //     JSON.parse(conversationHistory);
+    //   const cleanedConversationHistory = cleanConversationHistory(
+    //     parsedConversationHistory,
+    //   );
+
+    //   dispatch({ field: 'conversations', value: cleanedConversationHistory });
+    // }
+
+    // localstorageから「選択したActive会話」の情報を取得
     const selectedConversation = localStorage.getItem('selectedConversation');
+    console.log("select",selectedConversation)
+
     if (selectedConversation) {
       const parsedSelectedConversation: Conversation =
         JSON.parse(selectedConversation);
