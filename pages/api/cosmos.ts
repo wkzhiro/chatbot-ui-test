@@ -35,11 +35,11 @@ export const saveToCosmosDB = async (item: any) => {
 };
 
 // read
-export const readAllItemsFromCosmosDB = async () => {
+export const readAllItemsFromCosmosDB = async (oid: string | null) => {
     const container = client.database(databaseId).container(containerId);
     try {
         // 全てのアイテムを取得するクエリ
-        const query = `SELECT * FROM c`;
+        const query = oid ? `SELECT * FROM c WHERE c.oid = @oid` : `SELECT * FROM c`;
         const { resources: items } = await container.items.query(query).fetchAll();
         if (items.length > 0) {
             // console.log(`Items found:\n${JSON.stringify(items, null, 2)}`);

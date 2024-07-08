@@ -459,40 +459,23 @@ const Home = ({
     const fetchData = async () => {
       try {
         const key = localStorage.getItem('jwt');
-        // console.log("ihgdfiaajfokapofgjfopsjg",key)
-        const response = await fetch('/api/readallconversation_cosmos');
-        // console.log("fetch host.tsx")
-        if (!response.ok) {
-          throw new Error('Failed to fetch data from server');
-        }
-        const conversationHistory = await response.json(); // APIから取得したデータ
-        const cleanedConversationHistory = cleanConversationHistory(conversationHistory);
-        dispatch({ field: 'conversations', value: cleanedConversationHistory }); // 取得したデータを状態に設定
+        console.log("JWTトークン:", key);
 
+        if (key !== undefined && key !== null) {
+          const response = await fetch('/api/readallconversation_cosmos');
+          console.log("fetch host.tsx")
+          if (!response.ok) {
+            throw new Error('Failed to fetch data from server');
+          }
+          const conversationHistory = await response.json(); // APIから取得したデータ
+          const cleanedConversationHistory = cleanConversationHistory(conversationHistory);
+          dispatch({ field: 'conversations', value: cleanedConversationHistory }); // 取得したデータを状態に設定
+        }
         //////////////////////////////////////////
         // selectedConversationからidを抽出し,上書きしたい //
         const selectedConversationString = localStorage.getItem('selectedConversation');
-        // console.log("selectedConversationString",selectedConversationString)
+        console.log("selectedConversationString",selectedConversationString)
         
-          // if (selectedConversationString) {
-          //   // 文字列をオブジェクトにパース
-          // //   console.log("testtest")
-          //   const selectedConversation = JSON.parse(selectedConversationString);
-          //   if (selectedConversation && 'id' in selectedConversation) {
-          // //       console.log("Selected conversation ID:", selectedConversation.id);
-          //       // 特定のIDを検索
-          //       const targetId = selectedConversation.id;
-          //       // 特定のIDに一致するオブジェクトをフィルタリング
-          //       const matchingConversation = conversations.find(conversationHistory => conversationHistory.id === targetId);
-  
-          //       // 結果のログ出力
-          // //       console.log("matchingConversation",matchingConversation);
-          //       localStorage.setItem('selectedConversation', JSON.stringify(matchingConversation));
-          //       }
-          //     } else {
-          // //     console.log("No selected conversation string found."); 
-
-          //   } 
           
     } catch (error) {
         console.error('Error fetching data:', error);

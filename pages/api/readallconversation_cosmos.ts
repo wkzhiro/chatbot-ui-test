@@ -12,61 +12,25 @@ interface DecodedToken {
 }
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // // jwtトークンを取得
-  // const MAX_RETRIES = 5;
-  // const RETRY_INTERVAL_MS = 1000; // 1秒
-
-  // // JWTトークンを取得するための関数
-  // async function getJwtToken(): Promise<string> {
-  //   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
-  //     const key = localStorage.getItem('jwt');
-  //     if (key !== null && key !== undefined) {
-  //       return key;
-  //     }
-  //     // JWTが取得できない場合は待機
-  //     await new Promise(resolve => setTimeout(resolve, RETRY_INTERVAL_MS));
-  //   }
-  //   throw new Error("JWT token is null or undefined after multiple retries.");
-  // }
-
+  // jwtトークンを取得
   let oid: string | null = null;
   try {
-    // Cosmos DBから全てのアイテムを読み込む
+      const key = localStorage.getItem('jwt');
+      if (key === null) {
+          throw new Error("JWT token is null.");
+      }
+      // JWTトークンをデコード
+      const decodedToken = jwtDecode<DecodedToken>(key);
+      // console.log("log", decodedToken);
+      // `oid`フィールドを取得
+      oid = decodedToken.oid;
+      console.log("readall_OID:", oid);
+  } catch (error) {
+          console.error("Error decoding JWT token:", error);
+      }
+  try {
     console.log("readallitemfromcosmosdb")
-
-
-    ////////////////
-    // try {
-    //   const key = await getJwtToken();
-    //   // JWTトークンをデコード
-    //   const decodedToken = jwtDecode<DecodedToken>(key);
-    //   // `oid`フィールドを取得
-    //   oid = decodedToken.oid;
-    //   console.log("readall_OID:", oid);
-    // } catch (error) {
-    //   console.error("Error decoding JWT token:", error);
-    // }
-
-
-    // try {
-    //   const key = localStorage.getItem('jwt');
-    //   // console.log("log", key);
-    //   if (key === null) {
-    //       throw new Error("JWT token is null.");
-    //   }
-    //   // JWTトークンをデコード
-    //   const decodedToken = jwtDecode<DecodedToken>(key);
-    //   // console.log("log", decodedToken);
-    //   // `oid`フィールドを取得
-    //   oid = decodedToken.oid;
-    //   console.log("readall_OID:", oid);
-    //   } catch (error) {
-    //       console.error("Error decoding JWT token:", error);
-    //   }
-
-
-
-      const items = await readAllItemsFromCosmosDB();
+      const items = await readAllItemsFromCosmosDB(oid);
       
       // 読み込んだデータをクライアントに返す
       res.status(200).json(items);
