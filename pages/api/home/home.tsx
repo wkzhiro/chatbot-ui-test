@@ -110,24 +110,24 @@ const Home = ({
   // jwtの認証のためのコード
   const params = useSearchParams();
   const [code, _] = useState(params.get("code"));
-  // console.log("params",params.get("code"))
+  // // console.log("params",params.get("code"))
 
   useEffect(() => {
       // ローカルストレージからJWTトークンを取得
-    console.log("use_jwt");
+    // // console.log("use_jwt");
     const storedJwt = localStorage.getItem('jwt');
   
     const verifyAndFetchModels = async (storedJwt: any) => {
       try {
-        console.log("start verifyAndFetchModels");
+        // // console.log("start verifyAndFetchModels");
         // 認証をかける
         const url = "/api/models";
-        console.log(url, storedJwt);
+        // // console.log(url, storedJwt);
         const response = await axios.post(url, {
           key: storedJwt,
         });
         
-        console.log("end verifyAndFetchModels");
+        // console.log("end verifyAndFetchModels");
         return response.status;
       } catch (error) {
         console.error('Error verifying JWT:', error);
@@ -136,29 +136,29 @@ const Home = ({
     };
   
     const handleJWTVerification = async () => {
-      console.log("start handleJWTVerification");
+      // console.log("start handleJWTVerification");
       if (storedJwt) {
-        console.log("storedJwt exists");
+        // console.log("storedJwt exists");
         const status = await verifyAndFetchModels(storedJwt);
         if (status === 200) {
-          console.log("status 200");
-          console.log("jwt", jwt);
-          console.log("storejwt", storedJwt);
-          console.log("setjwt");
+          // console.log("status 200");
+          // console.log("jwt", jwt);
+          // console.log("storejwt", storedJwt);
+          // console.log("setjwt");
           setJWT(storedJwt);
         } 
       } else if(jwt){
         const status = await verifyAndFetchModels(jwt);
         if (status === 200) {
-          console.log("status 200");
-          console.log("setjwt");
+          // console.log("status 200");
+          // console.log("setjwt");
           setJWT(jwt);
         } else if(code){
-          console.log("code exists");
+          // console.log("code exists");
           try{
             // 認証をかける
             const url = "/api/auth/verify";
-            console.log(url, code);
+            // console.log(url, code);
             const { data }: { data: AuthenticationResult } = await axios.post(url, {
               code
             });
@@ -169,11 +169,11 @@ const Home = ({
           return false;
         }
         }}else if(code){
-          console.log("code exists");
+          // console.log("code exists");
           try{
             // 認証をかける
             const url = "/api/auth/verify";
-            console.log(url, code);
+            // console.log(url, code);
             const { data }: { data: AuthenticationResult } = await axios.post(url, {
               code
             });
@@ -184,11 +184,11 @@ const Home = ({
           return false;
         }
         };
-        console.log("storedJwt does not exist");
+        // console.log("storedJwt does not exist");
       };
   
     handleJWTVerification();
-    console.log("handleJWTVerification called");
+    // console.log("handleJWTVerification called");
   }, [code]);
 
   // jwtをリフレッシュするAPIリクエスト
@@ -205,7 +205,7 @@ const Home = ({
   // トークンの有効期限をチェックする関数
   const isTokenExpired = (token: string) => {
     const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString('utf-8'));
-    console.log("expiration:",payload.exp * 1000," now:",Date.now())
+    // console.log("expiration:",payload.exp * 1000," now:",Date.now())
     return payload.exp * 1000 < Date.now();
   };
 
@@ -458,9 +458,9 @@ const Home = ({
     const fetchData = async () => {
       try {
         const key = localStorage.getItem('jwt');
-        console.log("ihgdfiaajfokapofgjfopsjg",key)
+        // console.log("ihgdfiaajfokapofgjfopsjg",key)
         const response = await fetch('/api/readallconversation_cosmos');
-        console.log("fetch host.tsx")
+        // console.log("fetch host.tsx")
         if (!response.ok) {
           throw new Error('Failed to fetch data from server');
         }
@@ -471,25 +471,25 @@ const Home = ({
         //////////////////////////////////////////
         // selectedConversationからidを抽出し,上書きしたい //
         const selectedConversationString = localStorage.getItem('selectedConversation');
-        console.log("selectedConversationString",selectedConversationString)
+        // console.log("selectedConversationString",selectedConversationString)
         
           // if (selectedConversationString) {
           //   // 文字列をオブジェクトにパース
-          //   console.log("testtest")
+          // //   console.log("testtest")
           //   const selectedConversation = JSON.parse(selectedConversationString);
           //   if (selectedConversation && 'id' in selectedConversation) {
-          //       console.log("Selected conversation ID:", selectedConversation.id);
+          // //       console.log("Selected conversation ID:", selectedConversation.id);
           //       // 特定のIDを検索
           //       const targetId = selectedConversation.id;
           //       // 特定のIDに一致するオブジェクトをフィルタリング
           //       const matchingConversation = conversations.find(conversationHistory => conversationHistory.id === targetId);
   
           //       // 結果のログ出力
-          //       console.log("matchingConversation",matchingConversation);
+          // //       console.log("matchingConversation",matchingConversation);
           //       localStorage.setItem('selectedConversation', JSON.stringify(matchingConversation));
           //       }
           //     } else {
-          //     console.log("No selected conversation string found."); 
+          // //     console.log("No selected conversation string found."); 
 
           //   } 
           
@@ -513,7 +513,7 @@ const Home = ({
 
     // localstorageから「選択したActive会話」の情報を取得
     const selectedConversation = localStorage.getItem('selectedConversation');
-    console.log("select",selectedConversation)
+    // console.log("select",selectedConversation)
 
     if (selectedConversation) {
       const parsedSelectedConversation: Conversation =

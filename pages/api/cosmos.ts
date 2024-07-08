@@ -25,7 +25,7 @@ export const saveToCosmosDB = async (item: any) => {
     try {
         // itemが文字列の場合、オブジェクトに変換
         const { resource: createdItem } = await container.items.create(item);
-        console.log(`Item created:\n${JSON.stringify(createdItem, null, 2)}`);
+        // console.log(`Item created:\n${JSON.stringify(createdItem, null, 2)}`);
         return createdItem;
     } catch (error) {
         const anyError = error as any; // errorをany型にキャスト
@@ -73,7 +73,7 @@ export const updateItemInCosmosDB = async (uuid: string, updatedData: any) => {
 
         // アイテムを更新
         const { resource: updatedItem } = await container.item(uuid, undefined).replace(updatedData);
-        console.log("updated",updatedItem)
+        // console.log("updated",updatedItem)
         // console.log(`Item updated:\n${JSON.stringify(updatedItem, null, 2)}`);
 
         return updatedItem;

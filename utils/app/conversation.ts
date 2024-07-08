@@ -41,16 +41,16 @@ export const saveConversations = async(conversations: Conversation[]) => {
   // jwtトークン取得 //
   try {
     const key = localStorage.getItem('jwt');
-    // console.log("log", key);
+    // // console.log("log", key);
     if (key === null) {
         throw new Error("JWT token is null.");
     }
     // JWTトークンをデコード
     const decodedToken = jwtDecode<DecodedToken>(key);
-    // console.log("log", decodedToken);
+    // // console.log("log", decodedToken);
     // `oid`フィールドを取得
     oid = decodedToken.oid;
-    console.log("OID:", oid);
+    // console.log("OID:", oid);
     } catch (error) {
         console.error("Error decoding JWT token:", error);
     }
@@ -68,7 +68,7 @@ export const saveConversations = async(conversations: Conversation[]) => {
 
   // JWTトークンを紐づけてconvetsationHistoryに保存
   localStorage.setItem('conversationHistory', JSON.stringify(conversationsWithJwt));
-  // console.log("conversationsWithJwt",conversationsWithJwt)
+  // // console.log("conversationsWithJwt",conversationsWithJwt)
   // localStorage.setItem('conversationHistory', JSON.stringify(conversations));
 
   // 会話を走らせたときに、update
@@ -77,7 +77,7 @@ export const saveConversations = async(conversations: Conversation[]) => {
     // 文字列をオブジェクトにパース
     const selectedConversation = JSON.parse(selectedConversationString);
     if (selectedConversation && 'id' in selectedConversation) {
-        console.log("Selected conversation ID:", selectedConversation.id);
+        // console.log("Selected conversation ID:", selectedConversation.id);
         // 特定のIDを検索
         const targetId = selectedConversation.id;
 
@@ -94,12 +94,12 @@ export const saveConversations = async(conversations: Conversation[]) => {
         localStorage.setItem('selectedConversation', JSON.stringify(matchingConversation));
 
         // 結果のログ出力
-        console.log("matchingConversation",matchingConversation);
+        // console.log("matchingConversation",matchingConversation);
         // update
         let body;
         const controller = new AbortController();
         body = JSON.stringify(matchingConversation);
-        console.log("body",body)
+        // console.log("body",body)
         const response = await fetch("/api/updateConversation_cosmos", {
           method: 'POST',
           headers: {
@@ -108,13 +108,13 @@ export const saveConversations = async(conversations: Conversation[]) => {
           signal: controller.signal,
           body,
         });
-        console.log("response",response)
+        // console.log("response",response)
 
     } else {
-        console.log("Selected conversation does not have an 'id' property.");
+        // console.log("Selected conversation does not have an 'id' property.");
     }
     } else {
-        console.log("No selected conversation found in localStorage.");
+        // console.log("No selected conversation found in localStorage.");
     }
 };
 

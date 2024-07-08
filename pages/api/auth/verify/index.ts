@@ -21,6 +21,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             }
 
             const result = await msalService.acquireTokenByCode(code, verifier);
+            console.log("")
             res.status(200).json(result);
         } catch (error) {
             console.error('Error acquiring token:', error);
