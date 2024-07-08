@@ -13,24 +13,17 @@ interface DecodedToken {
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // jwtトークンを取得
-  let oid: string | null = null;
-  try {
-      const key = localStorage.getItem('jwt');
-      if (key === null) {
-          throw new Error("JWT token is null.");
-      }
-      // JWTトークンをデコード
-      const decodedToken = jwtDecode<DecodedToken>(key);
-      // console.log("log", decodedToken);
-      // `oid`フィールドを取得
-      oid = decodedToken.oid;
-      console.log("readall_OID:", oid);
-  } catch (error) {
-          console.error("Error decoding JWT token:", error);
-      }
+  const { oid } = req.body;
+  // oidが存在しない場合、エラーレスポンスを返す
+  if (!oid) {
+    return res.status(400).json({ error: 'OID is required' });
+  }
+
+  console.log("Received OID:", oid);
+
   try {
     console.log("readallitemfromcosmosdb")
-      const items = await readAllItemsFromCosmosDB(oid);
+    const items = await readAllItemsFromCosmosDB(oid);
       
       // 読み込んだデータをクライアントに返す
       res.status(200).json(items);

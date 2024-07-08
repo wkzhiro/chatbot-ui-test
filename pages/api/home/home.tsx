@@ -40,6 +40,7 @@ import Promptbar from '@/components/Promptbar';
 
 import HomeContext from './home.context';
 import { HomeInitialState, initialState } from './home.state';
+import { jwtDecode } from "jwt-decode";
 
 import { v4 as uuidv4 } from 'uuid';
 
@@ -422,12 +423,27 @@ const Home = ({
     }
     
     const fetchData = async () => {
+      let oid: string | null = null;
       try {
         const key = localStorage.getItem('jwt');
         console.log("JWTトークン:", key);
 
+        // JWTがあるかどうかで判断する
         if (key !== undefined && key !== null) {
-          const response = await fetch('/api/readallconversation_cosmos');
+          // JWTトークンをデコード
+          const decodedToken = jwtDecode<DecodedToken>(key);
+          console.log("log", decodedToken);
+          // `oid`フィールドを取得
+          oid = decodedToken.oid;
+          console.log("readall_OID:", oid);
+          const response = await fetch('/api/readallconversation_cosmos', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ oid: oid }),
+          });
+        
           console.log("fetch host.tsx")
           if (!response.ok) {
             throw new Error('Failed to fetch data from server');
@@ -436,12 +452,10 @@ const Home = ({
           const cleanedConversationHistory = cleanConversationHistory(conversationHistory);
           dispatch({ field: 'conversations', value: cleanedConversationHistory }); // 取得したデータを状態に設定
         }
-        //////////////////////////////////////////
+        
         // selectedConversationからidを抽出し,上書きしたい //
         const selectedConversationString = localStorage.getItem('selectedConversation');
-        console.log("selectedConversationString",selectedConversationString)
         
-          
     } catch (error) {
         console.error('Error fetching data:', error);
       }
