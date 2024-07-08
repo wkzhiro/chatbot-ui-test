@@ -179,6 +179,13 @@ const Home = ({
             });
             const jwt = data.accessToken;
             setJWT(jwt);
+            const account = data.account;
+            console.log("account:", account);
+            if (account) { // accountがnullでないことを確認
+              localStorage.setItem('account', JSON.stringify(account));
+            } else {
+              console.error("Account information is missing in the response.");
+            }
         }catch (error) {
           console.error('Error verifying access token:', error);
           return false;
@@ -211,11 +218,15 @@ const Home = ({
 
   const fetchModels = useCallback(async (signal?: AbortSignal) => {
     let token = jwt;
+    console.log("fetchmodel_start")
     if (jwt && isTokenExpired(jwt)) {
       const storedAccount = localStorage.getItem('account');
+      console.log("account_load",storedAccount)
       if (storedAccount) {
+        console.log("put_start")
         const account: AccountInfo = JSON.parse(storedAccount);
         token = await refreshJWT(account);
+        console.log("put_end")
       }
     }
 
@@ -229,20 +240,10 @@ const Home = ({
     );
   }, [jwt, getModels]);
 
-  const { data, error, refetch } = useQuery(
-    ['GetModels', jwt],
-    ({ signal }) => {
-      if (!jwt) return null;
-
-      return getModels(
-        {
-          key: jwt,
-        },
-        signal,
-      );
-    },
-    { enabled: true, refetchOnMount: false },
-  );
+  const { data, error, refetch } = useQuery(['GetModels', jwt], ({ signal }) => fetchModels(signal), {
+    enabled: !!jwt,
+    refetchOnMount: false,
+  });
 
   useEffect(() => {
     if (data) dispatch({ field: 'models', value: data });

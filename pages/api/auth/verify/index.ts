@@ -2,8 +2,14 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { MsalService } from "../../msal";
 import { AccountInfo } from "@azure/msal-node";
 
+// グローバル変数として保持する
+let msalService: MsalService;
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    const msalService = new MsalService();
+    // インスタンスが未作成の場合のみ初期化
+    if (!msalService) {
+        msalService = new MsalService();
+    }
 
     if (req.method === 'POST') {    
         try {
@@ -19,9 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 res.status(400).json({ error: 'invalid request' });
                 return;
             }
-
             const result = await msalService.acquireTokenByCode(code, verifier);
-            console.log("")
             res.status(200).json(result);
         } catch (error) {
             console.error('Error acquiring token:', error);
@@ -31,21 +35,27 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         try {
             const json = req.body;
             const account = json.account as AccountInfo;
+            // console.log("verify/account : ",account);
             if (!account) {
                 res.status(400).json({ error: 'account is not found' });
                 return;
             }
-
             const result = await msalService.acquireTokenSilent(account);
+            console.log("refresh", result);
+            
+            // const refreshToken = msalService.getRefreshToken();
+            // console.log("RefreshToken :", refreshToken);
+            // if (!refreshToken) {
+            //     res.status(400).json({ error: 'refreshToken is not found' });
+            //     return;
+            // }
+            // const result = await msalService.acquireTokenByRefreshToken(refreshToken);
             res.status(200).json(result);
         } catch (error) {
-            try{
-                // サイレント取得が失敗した場合のフォールバック
-                // console.log("Silent token acquisition failed, falling back to interaction", error);
-                // リダイレクトによる再認証を実行
-                // return await msalService.acquireTokenRedirect(req);
+            try {
+                console.log("Silent token acquisition failed, falling back to interaction", error);
             } catch (error) {
-                // console.error("Unexpected error acquiring token silently:", error);
+                console.error("Unexpected error acquiring token silently:", error);
                 res.status(500).json({ error: 'Failed to acquire token silently' });
             }
         }
