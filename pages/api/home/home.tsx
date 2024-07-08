@@ -110,92 +110,55 @@ const Home = ({
   // jwtの認証のためのコード
   const params = useSearchParams();
   const [code, _] = useState(params.get("code"));
-  // // console.log("params",params.get("code"))
 
   useEffect(() => {
-      // ローカルストレージからJWTトークンを取得
-    // // console.log("use_jwt");
     const storedJwt = localStorage.getItem('jwt');
-  
-    const verifyAndFetchModels = async (storedJwt: any) => {
-      try {
-        // // console.log("start verifyAndFetchModels");
-        // 認証をかける
-        const url = "/api/models";
-        // // console.log(url, storedJwt);
-        const response = await axios.post(url, {
-          key: storedJwt,
-        });
-        
-        // console.log("end verifyAndFetchModels");
-        return response.status;
-      } catch (error) {
-        console.error('Error verifying JWT:', error);
-        return false;
+
+    const handleJWTVerification = async () => {
+      let verified = false;
+
+      if (storedJwt) {
+        try {
+          const response = await axios.post('/api/models', { key: storedJwt });
+          if (response.status === 200) {
+            setJWT(storedJwt);
+            verified = true;
+          }
+        } catch (error) {
+          console.error('Error verifying stored JWT:', error);
+        }
+      }
+
+      if (!verified && jwt) {
+        try {
+          const response = await axios.post('/api/models', { key: jwt });
+          if (response.status === 200) {
+            setJWT(jwt);
+            verified = true;
+          }
+        } catch (error) {
+          console.error('Error verifying current JWT:', error);
+        }
+      }
+
+      if (!verified && code) {
+        try {
+          const { data } = await axios.post('/api/auth/verify', { code });
+          const newJwt = data.accessToken;
+          setJWT(newJwt);
+          const account = data.account;
+          if (account) {
+            localStorage.setItem('account', JSON.stringify(account));
+          } else {
+            console.error('Account information is missing in the response.');
+          }
+        } catch (error) {
+          console.error('Error verifying access token with code:', error);
+        }
       }
     };
-  
-    const handleJWTVerification = async () => {
-      // console.log("start handleJWTVerification");
-      if (storedJwt) {
-        // console.log("storedJwt exists");
-        const status = await verifyAndFetchModels(storedJwt);
-        if (status === 200) {
-          // console.log("status 200");
-          // console.log("jwt", jwt);
-          // console.log("storejwt", storedJwt);
-          // console.log("setjwt");
-          setJWT(storedJwt);
-        } 
-      } else if(jwt){
-        const status = await verifyAndFetchModels(jwt);
-        if (status === 200) {
-          // console.log("status 200");
-          // console.log("setjwt");
-          setJWT(jwt);
-        } else if(code){
-          // console.log("code exists");
-          try{
-            // 認証をかける
-            const url = "/api/auth/verify";
-            // console.log(url, code);
-            const { data }: { data: AuthenticationResult } = await axios.post(url, {
-              code
-            });
-            const jwt = data.accessToken;
-            setJWT(jwt);
-        }catch (error) {
-          console.error('Error verifying access token:', error);
-          return false;
-        }
-        }}else if(code){
-          // console.log("code exists");
-          try{
-            // 認証をかける
-            const url = "/api/auth/verify";
-            // console.log(url, code);
-            const { data }: { data: AuthenticationResult } = await axios.post(url, {
-              code
-            });
-            const jwt = data.accessToken;
-            setJWT(jwt);
-            const account = data.account;
-            console.log("account:", account);
-            if (account) { // accountがnullでないことを確認
-              localStorage.setItem('account', JSON.stringify(account));
-            } else {
-              console.error("Account information is missing in the response.");
-            }
-        }catch (error) {
-          console.error('Error verifying access token:', error);
-          return false;
-        }
-        };
-        // console.log("storedJwt does not exist");
-      };
-  
+
     handleJWTVerification();
-    // console.log("handleJWTVerification called");
   }, [code]);
 
   // jwtをリフレッシュするAPIリクエスト
@@ -243,6 +206,8 @@ const Home = ({
   const { data, error, refetch } = useQuery(['GetModels', jwt], ({ signal }) => fetchModels(signal), {
     enabled: !!jwt,
     refetchOnMount: false,
+    refetchOnWindowFocus: false, // ウィンドウフォーカス時の再フェッチを無効化
+
   });
 
   useEffect(() => {
