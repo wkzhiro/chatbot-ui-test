@@ -40,11 +40,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         } catch (error) {
             try{
                 // サイレント取得が失敗した場合のフォールバック
-                console.log("Silent token acquisition failed, falling back to interaction", error);
+                // console.log("Silent token acquisition failed, falling back to interaction", error);
                 // リダイレクトによる再認証を実行
                 // return await msalService.acquireTokenRedirect(req);
             } catch (error) {
-                console.error("Unexpected error acquiring token silently:", error);
+                // console.error("Unexpected error acquiring token silently:", error);
                 res.status(500).json({ error: 'Failed to acquire token silently' });
             }
         }
