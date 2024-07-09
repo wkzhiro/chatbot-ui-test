@@ -43,7 +43,6 @@ import { HomeInitialState, initialState } from './home.state';
 import { jwtDecode } from "jwt-decode";
 
 import { v4 as uuidv4 } from 'uuid';
-import bcrypt from 'bcrypt';
 
 
 interface Props {
@@ -138,15 +137,13 @@ const Home = ({
     // );
 
   const setRT = (oid: string) => {
-    const saltRounds = 10;
-    // bcrypt.genSalt(saltRounds, function(err, salt) {
-    //   bcrypt.hash(oid, salt, function(err, hash) {
-    //     dispatch({ field: 'oid', value: hash });
-    //     localStorage.setItem('oid', hash);
-    //   });
-    // });
-    dispatch({ field: 'oid', value: oid });
-    localStorage.setItem('oid', oid);
+    const crypto = require('crypto');
+    const password = process.env.SALT
+    const cipher = crypto.createCipher('aes-256-cbc', password)
+    const crypted = cipher.update(oid, 'utf-8', 'hex'); 
+    const crypted_text = crypted + cipher.final('hex')
+    dispatch({ field: 'oid', value: crypted_text });
+    localStorage.setItem('oid', crypted_text);
   };
 
   // jwtの認証のためのコード
@@ -160,6 +157,7 @@ const Home = ({
       let verified = false;
 
       if (storedJwt) {
+        console.log("storedJwt_models")
         try {
           const response = await axios.post('/api/models', { key: storedJwt });
           if (response.status === 200) {
@@ -172,6 +170,7 @@ const Home = ({
       }
 
       if (!verified && jwt) {
+        console.log("Jwt_models")
         try {
           const response = await axios.post('/api/models', { key: jwt });
           if (response.status === 200) {
@@ -184,16 +183,18 @@ const Home = ({
       }
 
       if (!verified && code) {
+        console.log("code_models")
         try {
           const { data } = await axios.post('/api/auth/verify', { code });
           const newJwt = data.result.accessToken;
-          const newrefreshtoken = data.refreshtoken;
+          // const newrefreshtoken = data.refreshtoken;
           console.log("result_verify",data)
           setJWT(newJwt);
-          setRT(newrefreshtoken);
+          // setRT(newrefreshtoken);
           const oid = data.result.account?.idTokenClaims?.oid;
           if (oid) {
-            localStorage.setItem('oid', JSON.stringify(oid));
+            setRT(oid);
+            // localStorage.setItem('oid', JSON.stringify(oid));
           } else {
             console.error('oid information is missing in the response.');
           }
@@ -234,7 +235,7 @@ const isTokenExpired = (token: string) => {
   const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString('utf-8'));
   // console.log("expiration:",payload.exp * 1000," now:",Date.now())
   const issuedAt = payload.iat * 1000; // iatは秒単位なのでミリ秒に変換
-  const ninetySeconds = 10000 * 1000; // 90秒をミリ秒に変換
+  const ninetySeconds = 9000 * 1000; // 90秒をミリ秒に変換
   return Date.now() > (issuedAt + ninetySeconds);
   // return payload.exp * 1000 < Date.now();
 };

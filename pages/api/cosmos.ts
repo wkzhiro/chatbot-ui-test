@@ -94,14 +94,17 @@ export const updateItemInCosmosDB = async (uuid: string, updatedData: any) => {
 // oidからのrefreshtokenの取得
 export const readrefreshtokenFromCosmosDB = async (oid: string | null) => {
     const container = client.database(databaseId).container(ref_containerId);
+    console.log("read_oid",oid)
     try {
         // oidのアイテムを取得するクエリ
-        const query = `SELECT * FROM c WHERE c.oid = '${oid}'`;
+        const query =  `SELECT * FROM c WHERE c.oid=${oid}`;
+        console.log(query)
 
-        const { resources: item } = await container.items.query(query).fetchAll();
-        if (item.length > 0) {
+        const { resources: items } = await container.items.query(query).fetchAll();
+        console.log("items",items)
+        if (items.length > 0) {
             // console.log(`Items found:\n${JSON.stringify(items, null, 2)}`);
-            return item.refreshToken;
+            return items[0].refreshToken;
         } else {
             console.log('No items found in the container.');
             return [];
@@ -137,6 +140,8 @@ export const updateToken = async (oid: string, refreshToken: string) => {
         date: date
     };
     
+    // console.log("tokendata", tokenData)
+
     try {
         const querySpec = `SELECT * FROM c WHERE c.oid = "${oid}"`
         const { resources: items } = await container.items.query(querySpec).fetchAll();
@@ -148,8 +153,10 @@ export const updateToken = async (oid: string, refreshToken: string) => {
         const item = items[0];
         const { id, _etag } = item;
 
+        console.log("items",items)
+
         // アイテムを更新
-        const { resource: updatedItem } = await container.item(oid, undefined).replace(tokenData);
+        const { resource: updatedItem } = await container.items.upsert(tokenData);
 
         return updatedItem;
     } catch (error) {

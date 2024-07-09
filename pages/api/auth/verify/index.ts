@@ -40,6 +40,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             let oid: string | null = null;
             oid = result.account?.idTokenClaims?.oid ?? null; // undefinedの場合にnullを設定
 
+            console.log("verify_oid",oid)
+
             // oidがnullでない場合のみupdateTokenを呼び出す
             if (oid) {
                 await updateToken(oid, refreshToken);
@@ -56,14 +58,23 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         try {
             const json = req.body;
             // const account = json.account as AccountInfo;
-            const oid = json.oid as string
+            const cipher_oid = json.oid as string
             // console.log("verify/account : ",account);
             // if (!account) {
             //     res.status(400).json({ error: 'account is not found' });
             //     return;
             // }
             // const result = await msalService.acquireTokenSilent(account);
-            const refreshtoken  = await readrefreshtokenFromCosmosDB(oid)
+            
+            const crypto = require('crypto')
+            const password = process.env.SALT
+            const decipher = crypto.createDecipher('aes-256-cbc',password )
+            const decrypted = decipher.update(cipher_oid, 'hex', 'utf-8')
+            const decrypted_text = decrypted + decipher.final('utf-8') 
+            console.log(decrypted_text)
+            const refreshtoken  = await readrefreshtokenFromCosmosDB(decrypted_text
+            )
+            console.log("refreshtoken", refreshtoken);
             const result = await msalService.acquireTokenByRefreshToken(refreshtoken);
             console.log("refresh", result);
             
