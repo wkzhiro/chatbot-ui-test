@@ -26,7 +26,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 return;
             }
             const result = await msalService.acquireTokenByCode(code, verifier);
-            res.status(200).json(result);
+
+            const refreshToken = msalService.getRefreshToken();
+            console.log("RefreshToken :", refreshToken);
+            if (!refreshToken) {
+                res.status(400).json({ error: 'refreshToken is not found' });
+                return;
+            }
+
+            res.status(200).json({ result: result, refreshtoken: refreshToken});
+            // const result = await msalService.acquireTokenByRefreshToken(refreshToken);
         } catch (error) {
             console.error('Error acquiring token:', error);
             res.status(500).json({ error: 'Failed to acquire token' });
@@ -34,22 +43,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } else if (req.method === 'PUT') {
         try {
             const json = req.body;
-            const account = json.account as AccountInfo;
+            // const account = json.account as AccountInfo;
+            const refreshtoken = json.refreshtoken as string
             // console.log("verify/account : ",account);
-            if (!account) {
-                res.status(400).json({ error: 'account is not found' });
-                return;
-            }
-            const result = await msalService.acquireTokenSilent(account);
-            console.log("refresh", result);
-            
-            // const refreshToken = msalService.getRefreshToken();
-            // console.log("RefreshToken :", refreshToken);
-            // if (!refreshToken) {
-            //     res.status(400).json({ error: 'refreshToken is not found' });
+            // if (!account) {
+            //     res.status(400).json({ error: 'account is not found' });
             //     return;
             // }
-            // const result = await msalService.acquireTokenByRefreshToken(refreshToken);
+            // const result = await msalService.acquireTokenSilent(account);
+            const result = await msalService.acquireTokenByRefreshToken(refreshtoken);
+            console.log("refresh", result);
+            
+            
             res.status(200).json(result);
         } catch (error) {
             try {

@@ -1,7 +1,5 @@
 import { DEFAULT_SYSTEM_PROMPT, DEFAULT_TEMPERATURE } from '@/utils/app/const';
 import { OpenAIError, OpenAIStream } from '@/utils/server';
-import { saveToCosmosDB } from './cosmos'; // インポートを追加
-import { jwtDecode } from "jwt-decode";
 
 import { ChatBody, Message } from '@/types/chat';
 // @ts-expect-error

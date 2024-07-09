@@ -82,11 +82,51 @@ const Home = ({
       prompts,
       temperature,
       jwt,  // JWTの状態を取得
+      reftoken
     },
     dispatch,
   } = contextValue;
 
   const stopConversationRef = useRef<boolean>(false);
+
+  const fetchData = async () => {
+    let oid: string | null = null;
+    try {
+      const key = localStorage.getItem('jwt');
+      console.log("JWTトークン:", key);
+
+      // JWTがあるかどうかで判断する
+      if (key !== undefined && key !== null) {
+        // JWTトークンをデコード
+        const decodedToken = jwtDecode<DecodedToken>(key);
+        console.log("log", decodedToken);
+        // `oid`フィールドを取得
+        oid = decodedToken.oid;
+        console.log("readall_OID:", oid);
+        const response = await fetch('/api/readallconversation_cosmos', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ oid: oid }),
+        });
+      
+        console.log("fetch host.tsx")
+        if (!response.ok) {
+          throw new Error('Failed to fetch data from server');
+        }
+        const conversationHistory = await response.json(); // APIから取得したデータ
+        const cleanedConversationHistory = cleanConversationHistory(conversationHistory);
+        dispatch({ field: 'conversations', value: cleanedConversationHistory }); // 取得したデータを状態に設定
+      }
+      
+      // selectedConversationからidを抽出し,上書きしたい //
+      const selectedConversationString = localStorage.getItem('selectedConversation');
+      
+  } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
 
   // const { data, error, refetch } = useQuery(
   //   ['GetModels', apiKey, serverSideApiKeyIsSet],
@@ -106,6 +146,13 @@ const Home = ({
   const setJWT = (jwt: string) => {
     dispatch({ field: 'jwt', value: jwt });
     localStorage.setItem('jwt', jwt);
+  };
+
+    // );
+
+  const setRT = (reftoken: string) => {
+    dispatch({ field: 'reftoken', value: reftoken });
+    localStorage.setItem('reftoken', reftoken);
   };
 
   // jwtの認証のためのコード
@@ -145,8 +192,11 @@ const Home = ({
       if (!verified && code) {
         try {
           const { data } = await axios.post('/api/auth/verify', { code });
-          const newJwt = data.accessToken;
+          const newJwt = data.result.accessToken;
+          const newrefreshtoken = data.refreshtoken;
+          console.log("result_verify",data)
           setJWT(newJwt);
+          setRT(newrefreshtoken);
           const account = data.account;
           if (account) {
             localStorage.setItem('account', JSON.stringify(account));
@@ -159,10 +209,11 @@ const Home = ({
       }
     };
 
-    handleJWTVerification();
+    handleJWTVerification().then(()=>{
+      fetchData()})
   }, [code]);
 
-  // jwtをリフレッシュするAPIリクエスト
+  // jwtを内部キャッシュでリフレッシュするAPIリクエスト
   const refreshJWT = async (account: AccountInfo) => {
     const url = "/api/auth/verify";
     const { data }: { data: AuthenticationResult } = await axios.put(url, {
@@ -172,25 +223,47 @@ const Home = ({
     setJWT(newToken);
     return newToken;
   };
-
-  // トークンの有効期限をチェックする関数
-  const isTokenExpired = (token: string) => {
-    const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString('utf-8'));
-    // console.log("expiration:",payload.exp * 1000," now:",Date.now())
-    return payload.exp * 1000 < Date.now();
+  
+  // jwtを外部キャッシュでリフレッシュするAPIリクエスト
+  const refreshJWTbytoken = async (refreshtoken: string) => {
+    const url = "/api/auth/verify";
+    const { data }: { data: AuthenticationResult } = await axios.put(url, {
+      refreshtoken
+    });
+    const newToken = data.accessToken;
+    setJWT(newToken);
+    return newToken;
   };
+
+// トークンの有効期限をチェックする関数
+const isTokenExpired = (token: string) => {
+  const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString('utf-8'));
+  // console.log("expiration:",payload.exp * 1000," now:",Date.now())
+  const issuedAt = payload.iat * 1000; // iatは秒単位なのでミリ秒に変換
+  const ninetySeconds = 10000 * 1000; // 90秒をミリ秒に変換
+  return Date.now() > (issuedAt + ninetySeconds);
+  // return payload.exp * 1000 < Date.now();
+};
 
   const fetchModels = useCallback(async (signal?: AbortSignal) => {
     let token = jwt;
     console.log("fetchmodel_start")
     if (jwt && isTokenExpired(jwt)) {
-      const storedAccount = localStorage.getItem('account');
-      console.log("account_load",storedAccount)
-      if (storedAccount) {
+      // const storedAccount = localStorage.getItem('account');
+      // console.log("account_load",storedAccount)
+      // if (storedAccount) {
+      //   console.log("put_start")
+      //   const account: AccountInfo = JSON.parse(storedAccount);
+      //   token = await refreshJWT(account);
+      //   console.log("put_end")
+      // }
+      const storedrefreshtoken = localStorage.getItem('reftoken');
+      console.log("storedrefreshtoken",storedrefreshtoken)
+      if (storedrefreshtoken) {
         console.log("put_start")
-        const account: AccountInfo = JSON.parse(storedAccount);
-        token = await refreshJWT(account);
-        console.log("put_end")
+        // const jsonrefreshtoken: string = JSON.parse(storedrefreshtoken);
+        token = await refreshJWTbytoken(storedrefreshtoken);
+        console.log("put_end", token)
       }
     }
 
@@ -422,44 +495,7 @@ const Home = ({
       dispatch({ field: 'prompts', value: JSON.parse(prompts) });
     }
     
-    const fetchData = async () => {
-      let oid: string | null = null;
-      try {
-        const key = localStorage.getItem('jwt');
-        console.log("JWTトークン:", key);
 
-        // JWTがあるかどうかで判断する
-        if (key !== undefined && key !== null) {
-          // JWTトークンをデコード
-          const decodedToken = jwtDecode<DecodedToken>(key);
-          console.log("log", decodedToken);
-          // `oid`フィールドを取得
-          oid = decodedToken.oid;
-          console.log("readall_OID:", oid);
-          const response = await fetch('/api/readallconversation_cosmos', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ oid: oid }),
-          });
-        
-          console.log("fetch host.tsx")
-          if (!response.ok) {
-            throw new Error('Failed to fetch data from server');
-          }
-          const conversationHistory = await response.json(); // APIから取得したデータ
-          const cleanedConversationHistory = cleanConversationHistory(conversationHistory);
-          dispatch({ field: 'conversations', value: cleanedConversationHistory }); // 取得したデータを状態に設定
-        }
-        
-        // selectedConversationからidを抽出し,上書きしたい //
-        const selectedConversationString = localStorage.getItem('selectedConversation');
-        
-    } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
     // fetchData関数の呼び出し
     fetchData();
 
