@@ -48,7 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             } else {
                 console.log('oid is null or undefined');
             };
-            res.status(200).json({ result: result, refreshtoken: refreshToken});
+            res.status(200).json({ result: result, oid: oid});
             // const result = await msalService.acquireTokenByRefreshToken(refreshToken);
         } catch (error) {
             console.error('Error acquiring token:', error);

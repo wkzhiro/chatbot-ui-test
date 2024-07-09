@@ -187,11 +187,11 @@ const Home = ({
         try {
           const { data } = await axios.post('/api/auth/verify', { code });
           const newJwt = data.result.accessToken;
-          // const newrefreshtoken = data.refreshtoken;
+          const oid = data.oid;
           console.log("result_verify",data)
           setJWT(newJwt);
-          // setRT(newrefreshtoken);
-          const oid = data.result.account?.idTokenClaims?.oid;
+          setRT(oid);
+          // const oid = data.result.account?.idTokenClaims?.oid;
           if (oid) {
             setRT(oid);
             // localStorage.setItem('oid', JSON.stringify(oid));
