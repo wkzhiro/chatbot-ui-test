@@ -29,7 +29,7 @@ export interface HomeInitialState {
   serverSidePluginKeysSet: boolean;
   // serverSideJwtSet: boolean;
   jwt: string;  // JWTを追加
-  reftoken: string;  // JWTを追加
+  oid: string;  // JWTを追加
 }
 
 export const initialState: HomeInitialState = {
@@ -56,5 +56,5 @@ export const initialState: HomeInitialState = {
   serverSidePluginKeysSet: false,
   // serverSideJwtSet: false,
   jwt: '',  // 初期値を追加
-  reftoken: '',
+  oid: '',
 };

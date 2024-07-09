@@ -43,6 +43,8 @@ import { HomeInitialState, initialState } from './home.state';
 import { jwtDecode } from "jwt-decode";
 
 import { v4 as uuidv4 } from 'uuid';
+import bcrypt from 'bcrypt';
+
 
 interface Props {
   serverSideApiKeyIsSet: boolean;
@@ -82,7 +84,7 @@ const Home = ({
       prompts,
       temperature,
       jwt,  // JWTの状態を取得
-      reftoken
+      oid
     },
     dispatch,
   } = contextValue;
@@ -128,21 +130,6 @@ const Home = ({
     }
   };
 
-  // const { data, error, refetch } = useQuery(
-  //   ['GetModels', apiKey, serverSideApiKeyIsSet],
-  //   ({ signal }) => {
-  //     if (!apiKey && !serverSideApiKeyIsSet) return null;
-
-  //     return getModels(
-  //       {
-  //         key: apiKey,
-  //       },
-  //       signal,
-  //     );
-  //   },
-  //   { enabled: true, refetchOnMount: false },
-  // );
-
   const setJWT = (jwt: string) => {
     dispatch({ field: 'jwt', value: jwt });
     localStorage.setItem('jwt', jwt);
@@ -150,9 +137,16 @@ const Home = ({
 
     // );
 
-  const setRT = (reftoken: string) => {
-    dispatch({ field: 'reftoken', value: reftoken });
-    localStorage.setItem('reftoken', reftoken);
+  const setRT = (oid: string) => {
+    const saltRounds = 10;
+    // bcrypt.genSalt(saltRounds, function(err, salt) {
+    //   bcrypt.hash(oid, salt, function(err, hash) {
+    //     dispatch({ field: 'oid', value: hash });
+    //     localStorage.setItem('oid', hash);
+    //   });
+    // });
+    dispatch({ field: 'oid', value: oid });
+    localStorage.setItem('oid', oid);
   };
 
   // jwtの認証のためのコード
@@ -197,11 +191,11 @@ const Home = ({
           console.log("result_verify",data)
           setJWT(newJwt);
           setRT(newrefreshtoken);
-          const account = data.account;
-          if (account) {
-            localStorage.setItem('account', JSON.stringify(account));
+          const oid = data.result.account?.idTokenClaims?.oid;
+          if (oid) {
+            localStorage.setItem('oid', JSON.stringify(oid));
           } else {
-            console.error('Account information is missing in the response.');
+            console.error('oid information is missing in the response.');
           }
         } catch (error) {
           console.error('Error verifying access token with code:', error);
@@ -213,22 +207,22 @@ const Home = ({
       fetchData()})
   }, [code]);
 
-  // jwtを内部キャッシュでリフレッシュするAPIリクエスト
-  const refreshJWT = async (account: AccountInfo) => {
-    const url = "/api/auth/verify";
-    const { data }: { data: AuthenticationResult } = await axios.put(url, {
-      account
-    });
-    const newToken = data.accessToken;
-    setJWT(newToken);
-    return newToken;
-  };
+  // // jwtを内部キャッシュでリフレッシュするAPIリクエスト
+  // const refreshJWT = async (account: AccountInfo) => {
+  //   const url = "/api/auth/verify";
+  //   const { data }: { data: AuthenticationResult } = await axios.put(url, {
+  //     account
+  //   });
+  //   const newToken = data.accessToken;
+  //   setJWT(newToken);
+  //   return newToken;
+  // };
   
   // jwtを外部キャッシュでリフレッシュするAPIリクエスト
-  const refreshJWTbytoken = async (refreshtoken: string) => {
+  const refreshJWTbytoken = async (oid: string) => {
     const url = "/api/auth/verify";
     const { data }: { data: AuthenticationResult } = await axios.put(url, {
-      refreshtoken
+      oid
     });
     const newToken = data.accessToken;
     setJWT(newToken);
@@ -257,12 +251,12 @@ const isTokenExpired = (token: string) => {
       //   token = await refreshJWT(account);
       //   console.log("put_end")
       // }
-      const storedrefreshtoken = localStorage.getItem('reftoken');
-      console.log("storedrefreshtoken",storedrefreshtoken)
-      if (storedrefreshtoken) {
+      const storedoid = localStorage.getItem('oid');
+      console.log("storedoid",storedoid)
+      if (storedoid) {
         console.log("put_start")
         // const jsonrefreshtoken: string = JSON.parse(storedrefreshtoken);
-        token = await refreshJWTbytoken(storedrefreshtoken);
+        token = await refreshJWTbytoken(storedoid);
         console.log("put_end", token)
       }
     }

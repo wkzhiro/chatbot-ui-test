@@ -1,6 +1,8 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { MsalService } from "../../msal";
 import { AccountInfo } from "@azure/msal-node";
+import { readrefreshtokenFromCosmosDB } from '../../cosmos';
+import {updateToken} from '../../cosmos';
 
 // グローバル変数として保持する
 let msalService: MsalService;
@@ -33,7 +35,17 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 res.status(400).json({ error: 'refreshToken is not found' });
                 return;
             }
+            
+            // oid取得
+            let oid: string | null = null;
+            oid = result.account?.idTokenClaims?.oid ?? null; // undefinedの場合にnullを設定
 
+            // oidがnullでない場合のみupdateTokenを呼び出す
+            if (oid) {
+                await updateToken(oid, refreshToken);
+            } else {
+                console.log('oid is null or undefined');
+            };
             res.status(200).json({ result: result, refreshtoken: refreshToken});
             // const result = await msalService.acquireTokenByRefreshToken(refreshToken);
         } catch (error) {
@@ -44,16 +56,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         try {
             const json = req.body;
             // const account = json.account as AccountInfo;
-            const refreshtoken = json.refreshtoken as string
+            const oid = json.oid as string
             // console.log("verify/account : ",account);
             // if (!account) {
             //     res.status(400).json({ error: 'account is not found' });
             //     return;
             // }
             // const result = await msalService.acquireTokenSilent(account);
+            const refreshtoken  = await readrefreshtokenFromCosmosDB(oid)
             const result = await msalService.acquireTokenByRefreshToken(refreshtoken);
             console.log("refresh", result);
-            
             
             res.status(200).json(result);
         } catch (error) {

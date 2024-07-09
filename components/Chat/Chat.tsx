@@ -98,40 +98,6 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         homeDispatch({ field: 'loading', value: true });
         homeDispatch({ field: 'messageIsStreaming', value: true });
 
-        // const setJWT = (jwt: string) => {
-        //   homeDispatch({ field: 'jwt', value: jwt });
-        //   localStorage.setItem('jwt', jwt);
-        // };
-
-        // // jwtをリフレッシュするAPIリクエスト
-        // const refreshJWT = async (account: AccountInfo) => {
-        //   const url = "/api/auth/verify";
-        //   const { data }: { data: AuthenticationResult } = await axios.put(url, {
-        //     account
-        //   });
-        //   const newToken = data.accessToken;
-        //   setJWT(newToken);
-        //   return newToken;
-        // };
-        // // トークンの有効期限をチェックする関数
-        // const isTokenExpired = (token: string) => {
-        //   const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString('utf-8'));
-        //   console.log("expiration:",payload.exp * 1000," now:",Date.now())
-        //   return payload.exp * 1000 > Date.now();
-        // };
-
-        // console.log("fetchmodel_start")
-
-        // if (jwt && isTokenExpired(jwt)) {
-        //   const storedAccount = localStorage.getItem('account');
-        //   console.log("account_load",storedAccount)
-        //   if (storedAccount) {
-        //     console.log("put_start")
-        //     const account: AccountInfo = JSON.parse(storedAccount);
-        //     await refreshJWT(account);
-        //     console.log("put_end")
-        //   }};
-
         const chatBody: ChatBody = {
           model: updatedConversation.model,
           messages: updatedConversation.messages,
