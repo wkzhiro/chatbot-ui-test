@@ -64,9 +64,9 @@ export class MsalService {
     public getRefreshToken = () => {
         const tokenCache = this._msalInstance.getTokenCache().serialize();
         const refreshTokenObject = JSON.parse(tokenCache).RefreshToken;
-        console.log("tokenCache : ",tokenCache);
+        // console.log("tokenCache : ",tokenCache);
         const refreshToken = refreshTokenObject[Object.keys(refreshTokenObject)[0]].secret;
-        console.log("RefreshToken :",refreshToken);
+        // console.log("RefreshToken :",refreshToken);
         return refreshToken;
     };
 
