@@ -559,7 +559,7 @@ const isTokenExpired = (token: string) => {
       }}
     >
       <Head>
-        <title>Chatbot UI</title>
+        <title>Tech0 Bot by skk</title>
         <meta name="description" content="ChatGPT but better." />
         <meta
           name="viewport"
