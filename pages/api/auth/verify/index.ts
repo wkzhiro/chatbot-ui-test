@@ -2,7 +2,8 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import { MsalService } from "../../msal";
 import { AccountInfo } from "@azure/msal-node";
 import { readrefreshtokenFromCosmosDB } from '../../cosmos';
-import {updateToken} from '../../cosmos';
+import { updateToken } from '../../cosmos';
+import { SALT } from '@/utils/app/const';
 
 // グローバル変数として保持する
 let msalService: MsalService;
@@ -44,7 +45,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
             // oidがnullでない場合のみupdateTokenを呼び出す
             if (oid) {
+                console.log("start:updateRefreshToken");
                 await updateToken(oid, refreshToken);
+                console.log("end:updateRefreshToken");
             } else {
                 console.log('oid is null or undefined');
             };
@@ -66,14 +69,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             // }
             // const result = await msalService.acquireTokenSilent(account);
             
-            const crypto = require('crypto')
-            const password = process.env.SALT
-            const decipher = crypto.createDecipher('aes-256-cbc',password )
-            const decrypted = decipher.update(cipher_oid, 'hex', 'utf-8')
-            const decrypted_text = decrypted + decipher.final('utf-8') 
-            console.log(decrypted_text)
-            const refreshtoken  = await readrefreshtokenFromCosmosDB(decrypted_text
-            )
+            const crypto = require('crypto');
+            const password:string = SALT;
+            const decipher = crypto.createDecipher('aes-256-cbc',password );
+            const decrypted = decipher.update(cipher_oid, 'hex', 'utf-8');
+            const decrypted_text = decrypted + decipher.final('utf-8');
+            console.log(decrypted_text);
+            const refreshtoken  = await readrefreshtokenFromCosmosDB(decrypted_text);
             console.log("refreshtoken", refreshtoken);
             const result = await msalService.acquireTokenByRefreshToken(refreshtoken);
             console.log("refresh", result);

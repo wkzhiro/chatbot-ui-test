@@ -17,7 +17,7 @@ import {
   cleanConversationHistory,
   cleanSelectedConversation,
 } from '@/utils/app/clean';
-import { DEFAULT_SYSTEM_PROMPT, DEFAULT_TEMPERATURE } from '@/utils/app/const';
+import { DEFAULT_SYSTEM_PROMPT, DEFAULT_TEMPERATURE,SALT} from '@/utils/app/const';
 import {
   saveConversation,
   saveConversations,
@@ -138,10 +138,12 @@ const Home = ({
 
   const setRT = (oid: string) => {
     const crypto = require('crypto');
-    const password = process.env.SALT
-    const cipher = crypto.createCipher('aes-256-cbc', password)
+    const password: string = SALT;
+    const algorithm = 'aes-256-cbc';
+    
+    const cipher = crypto.createCipher(algorithm, password);
     const crypted = cipher.update(oid, 'utf-8', 'hex'); 
-    const crypted_text = crypted + cipher.final('hex')
+    const crypted_text = crypted + cipher.final('hex');
     dispatch({ field: 'oid', value: crypted_text });
     localStorage.setItem('oid', crypted_text);
   };
@@ -244,6 +246,7 @@ const isTokenExpired = (token: string) => {
     let token = jwt;
     console.log("fetchmodel_start")
     if (jwt && isTokenExpired(jwt)) {
+      console.log("TokenExpired")
       // const storedAccount = localStorage.getItem('account');
       // console.log("account_load",storedAccount)
       // if (storedAccount) {
