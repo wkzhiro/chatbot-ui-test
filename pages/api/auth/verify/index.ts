@@ -4,6 +4,7 @@ import { AccountInfo } from "@azure/msal-node";
 import { readrefreshtokenFromCosmosDB } from '../../cosmos';
 import { updateToken } from '../../cosmos';
 import { SALT } from '@/utils/app/const';
+import { v4 as uuidv4 } from 'uuid';
 
 // グローバル変数として保持する
 let msalService: MsalService;
@@ -39,6 +40,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             
             // oid取得
             let oid: string | null = null;
+            let uuid: string | null = uuidv4();
             oid = result.account?.idTokenClaims?.oid ?? null; // undefinedの場合にnullを設定
 
             console.log("verify_oid",oid)
@@ -46,7 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             // oidがnullでない場合のみupdateTokenを呼び出す
             if (oid) {
                 console.log("start:updateRefreshToken");
-                await updateToken(oid, refreshToken);
+                await updateToken(oid, refreshToken, uuid);
                 console.log("end:updateRefreshToken");
             } else {
                 console.log('oid is null or undefined');
