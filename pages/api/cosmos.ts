@@ -24,6 +24,7 @@ interface TokenData {
     oid: string;
     refreshToken: string;
     date: number;
+    id: string;
 }
 
 export const saveToCosmosDB = async (item: any) => {
@@ -131,32 +132,34 @@ export const saveToken = async (item: any) => {
 };
 
 // tokenをupdateする
-export const updateToken = async (oid: string, refreshToken: string) => {
+export const updateToken = async (oid: string, refreshToken: string, uuid: string) => {
     const container = client.database(databaseId).container(ref_containerId);
     const date = Date.now();
     const tokenData: TokenData = {
         oid: oid,
         refreshToken: refreshToken,
-        date: date
+        date: date,
+        id: uuid
     };
-    
-    // console.log("tokendata", tokenData)
 
     try {
-        const querySpec = `SELECT * FROM c WHERE c.oid = "${oid}"`
+        const querySpec = {
+            query: "SELECT * FROM c WHERE c.oid = @oid",
+            parameters: [
+                { name: "@oid", value: oid }
+            ]
+        };
         const { resources: items } = await container.items.query(querySpec).fetchAll();
         // アイテムが見つからなかった場合、新しいアイテムを保存
         if (items.length === 0) {
             console.log('No item found with the given oid.');
             return await saveToken(tokenData);
         }
+        const partitionKey = oid;
         const item = items[0];
         const { id, _etag } = item;
-
-        console.log("items",items)
-
         // アイテムを更新
-        const { resource: updatedItem } = await container.items.upsert(tokenData);
+        const { resource: updatedItem } = await container.item(id, partitionKey).replace(tokenData);
 
         return updatedItem;
     } catch (error) {
