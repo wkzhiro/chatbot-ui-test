@@ -90,20 +90,27 @@ const Home = ({
 
   const stopConversationRef = useRef<boolean>(false);
 
+  // jsonかどうかを判定する
+  const isValidJson = (str: any) => {
+    try {
+      JSON.parse(str);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  };
+
   const fetchData = async () => {
     let oid: string | null = null;
     try {
       const key = localStorage.getItem('jwt');
-      console.log("JWTトークン:", key);
 
       // JWTがあるかどうかで判断する
       if (key !== undefined && key !== null) {
         // JWTトークンをデコード
         const decodedToken = jwtDecode<DecodedToken>(key);
-        console.log("log", decodedToken);
         // `oid`フィールドを取得
         oid = decodedToken.oid;
-        console.log("readall_OID:", oid);
         const response = await fetch('/api/readallconversation_cosmos', {
           method: 'POST',
           headers: {
@@ -112,7 +119,6 @@ const Home = ({
           body: JSON.stringify({ oid: oid }),
         });
       
-        console.log("fetch host.tsx")
         if (!response.ok) {
           throw new Error('Failed to fetch data from server');
         }
@@ -196,7 +202,6 @@ const Home = ({
           // const oid = data.result.account?.idTokenClaims?.oid;
           if (oid) {
             setRT(oid);
-            // localStorage.setItem('oid', JSON.stringify(oid));
           } else {
             console.error('oid information is missing in the response.');
           }
@@ -492,27 +497,15 @@ const isTokenExpired = (token: string) => {
     if (prompts) {
       dispatch({ field: 'prompts', value: JSON.parse(prompts) });
     }
-    
 
     // fetchData関数の呼び出し
     fetchData();
 
-    // const conversationHistory = localStorage.getItem('conversationHistory');
-    // if (conversationHistory) {
-    //   const parsedConversationHistory: Conversation[] =
-    //     JSON.parse(conversationHistory);
-    //   const cleanedConversationHistory = cleanConversationHistory(
-    //     parsedConversationHistory,
-    //   );
-
-    //   dispatch({ field: 'conversations', value: cleanedConversationHistory });
-    // }
-
     // localstorageから「選択したActive会話」の情報を取得
     const selectedConversation = localStorage.getItem('selectedConversation');
-    // console.log("select",selectedConversation)
+    console.log("selectedConversation",selectedConversation)
 
-    if (selectedConversation) {
+    if (selectedConversation && isValidJson(selectedConversation)) {
       const parsedSelectedConversation: Conversation =
         JSON.parse(selectedConversation);
       const cleanedSelectedConversation = cleanSelectedConversation(
