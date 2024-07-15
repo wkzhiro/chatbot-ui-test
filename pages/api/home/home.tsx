@@ -163,43 +163,24 @@ const Home = ({
     const storedJwt = localStorage.getItem('jwt');
 
     const handleJWTVerification = async () => {
-      let verified = false;
-
+      // jwtが期限切れの有無に関わらず、ローカルストレージにjwtがある場合、jwtを更新
       if (storedJwt) {
-        console.log("storedJwt_models")
-        try {
-          const response = await axios.post('/api/models', { key: storedJwt });
-          if (response.status === 200) {
-            setJWT(storedJwt);
-            verified = true;
-          }
-        } catch (error) {
-          console.error('Error verifying stored JWT:', error);
+        const storedoid = localStorage.getItem('oid');
+        if (storedoid) {
+          const newJwt = await refreshJWTbytoken(storedoid);
+          setJWT(newJwt);
+        } else {
+          console.error('OID is missing in local storage.');
         }
-      }
-
-      if (!verified && jwt) {
-        console.log("Jwt_models")
-        try {
-          const response = await axios.post('/api/models', { key: jwt });
-          if (response.status === 200) {
-            setJWT(jwt);
-            verified = true;
-          }
-        } catch (error) {
-          console.error('Error verifying current JWT:', error);
-        }
-      }
-
-      if (!verified && code) {
+      // ローカルストレージにjwtがない場合、認証してjwtを発行し、jwtとoidをローカルストレージに登録
+      } else {
         console.log("code_models")
         try {
           const { data } = await axios.post('/api/auth/verify', { code });
           const newJwt = data.result.accessToken;
           const oid = data.oid;
-          console.log("result_verify",data)
+          // console.log("result_verify",data)
           setJWT(newJwt);
-          setRT(oid);
           // const oid = data.result.account?.idTokenClaims?.oid;
           if (oid) {
             setRT(oid);
