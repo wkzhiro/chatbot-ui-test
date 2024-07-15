@@ -216,51 +216,12 @@ const Home = ({
       fetchData()})
   }, [code]);
 
-  // // jwtを内部キャッシュでリフレッシュするAPIリクエスト
-  // const refreshJWT = async (account: AccountInfo) => {
-  //   const url = "/api/auth/verify";
-  //   const { data }: { data: AuthenticationResult } = await axios.put(url, {
-  //     account
-  //   });
-  //   const newToken = data.accessToken;
-  //   setJWT(newToken);
-  //   return newToken;
-  // };
-  
-//   // jwtを外部キャッシュでリフレッシュするAPIリクエスト
-//   const refreshJWTbytoken = async (oid: string) => {
-//     const url = "/api/auth/verify";
-//     const { data }: { data: AuthenticationResult } = await axios.put(url, {
-//       oid
-//     });
-//     const newToken = data.accessToken;
-//     setJWT(newToken);
-//     return newToken;
-//   };
-
-// // トークンの有効期限をチェックする関数
-// const isTokenExpired = (token: string) => {
-//   const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString('utf-8'));
-//   // console.log("expiration:",payload.exp * 1000," now:",Date.now())
-//   const issuedAt = payload.iat * 1000; // iatは秒単位なのでミリ秒に変換
-//   const ninetySeconds = 3600 * 1000; // 90秒をミリ秒に変換
-//   return Date.now() > (issuedAt + ninetySeconds);
-//   // return payload.exp * 1000 < Date.now();
-// };
-
   const fetchModels = useCallback(async (signal?: AbortSignal) => {
     let token = jwt;
     console.log("fetchmodel_start")
     if (jwt && isTokenExpired(jwt)) {
       console.log("TokenExpired")
-      // const storedAccount = localStorage.getItem('account');
-      // console.log("account_load",storedAccount)
-      // if (storedAccount) {
-      //   console.log("put_start")
-      //   const account: AccountInfo = JSON.parse(storedAccount);
-      //   token = await refreshJWT(account);
-      //   console.log("put_end")
-      // }
+
       const storedoid = localStorage.getItem('oid');
       console.log("storedoid",storedoid)
       if (storedoid) {
