@@ -23,6 +23,9 @@ import rehypeMathjax from 'rehype-mathjax';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
 
+import Image from "next/image"
+import hamadaImage from "../../public/icon_hamada.png";
+
 export interface Props {
   message: Message;
   messageIndex: number;
@@ -128,8 +131,8 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
     <div
       className={`group md:px-4 ${
         message.role === 'assistant'
-          ? 'border-b border-black/10 bg-gray-50 text-gray-800 dark:border-gray-900/50 dark:bg-[#444654] dark:text-gray-100'
-          : 'border-b border-black/10 bg-white text-gray-800 dark:border-gray-900/50 dark:bg-[#343541] dark:text-gray-100'
+          ? 'border-b border-black/10 bg-[#f8f4e6] text-gray-800 dark:border-gray-900/50 dark:bg-[#444654] dark:text-gray-100'
+          : 'border-b border-black/10 bg-[#f8f4e6] text-gray-800 dark:border-gray-900/50 dark:bg-[#343541] dark:text-gray-100'
       }`}
       style={{ overflowWrap: 'anywhere' }}
     >
@@ -137,6 +140,8 @@ export const ChatMessage: FC<Props> = memo(({ message, messageIndex, onEdit }) =
         <div className="min-w-[40px] text-right font-bold">
           {message.role === 'assistant' ? (
             <IconRobot size={30} />
+            // アイコンを変更.
+            // <Image src={hamadaImage} alt='hamadaImage' width="150"/>
           ) : (
             <IconUser size={30} />
           )}

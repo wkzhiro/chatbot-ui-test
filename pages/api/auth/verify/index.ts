@@ -3,7 +3,6 @@ import { MsalService } from "../../msal";
 import { AccountInfo } from "@azure/msal-node";
 import { readrefreshtokenFromCosmosDB } from '../../cosmos';
 import { updateToken } from '../../cosmos';
-import { SALT } from '@/utils/app/const';
 import { v4 as uuidv4 } from 'uuid';
 
 // グローバル変数として保持する
@@ -72,12 +71,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             // const result = await msalService.acquireTokenSilent(account);
             
             const crypto = require('crypto');
-            const password:string = SALT;
+            const password = process.env.NEXT_PUBLIC_SALT as string;
+            console.log("password:",password);
             const decipher = crypto.createDecipher('aes-256-cbc',password );
             const decrypted = decipher.update(cipher_oid, 'hex', 'utf-8');
             const decrypted_text = decrypted + decipher.final('utf-8');
             console.log(decrypted_text);
-            const refreshtoken  = await readrefreshtokenFromCosmosDB(decrypted_text);
+            const refreshtoken  = await readrefreshtokenFromCosmosDB('"'+decrypted_text.toString()+'"');
             console.log("refreshtoken", refreshtoken);
             const result = await msalService.acquireTokenByRefreshToken(refreshtoken);
             console.log("refresh", result);

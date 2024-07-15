@@ -17,7 +17,7 @@ import {
   cleanConversationHistory,
   cleanSelectedConversation,
 } from '@/utils/app/clean';
-import { DEFAULT_SYSTEM_PROMPT, DEFAULT_TEMPERATURE,SALT} from '@/utils/app/const';
+import { DEFAULT_SYSTEM_PROMPT, DEFAULT_TEMPERATURE} from '@/utils/app/const';
 import {
   saveConversation,
   saveConversations,
@@ -144,7 +144,8 @@ const Home = ({
 
   const setRT = (oid: string) => {
     const crypto = require('crypto');
-    const password: string = SALT;
+    const password = process.env.NEXT_PUBLIC_SALT as string;
+    console.log("password:",password);
     const algorithm = 'aes-256-cbc';
     
     const cipher = crypto.createCipher(algorithm, password);
@@ -226,14 +227,23 @@ const Home = ({
   //   return newToken;
   // };
   
-
+//   // jwtを外部キャッシュでリフレッシュするAPIリクエスト
+//   const refreshJWTbytoken = async (oid: string) => {
+//     const url = "/api/auth/verify";
+//     const { data }: { data: AuthenticationResult } = await axios.put(url, {
+//       oid
+//     });
+//     const newToken = data.accessToken;
+//     setJWT(newToken);
+//     return newToken;
+//   };
 
 // // トークンの有効期限をチェックする関数
 // const isTokenExpired = (token: string) => {
 //   const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString('utf-8'));
 //   // console.log("expiration:",payload.exp * 1000," now:",Date.now())
 //   const issuedAt = payload.iat * 1000; // iatは秒単位なのでミリ秒に変換
-//   const ninetySeconds = 9000 * 1000; // 90秒をミリ秒に変換
+//   const ninetySeconds = 3600 * 1000; // 90秒をミリ秒に変換
 //   return Date.now() > (issuedAt + ninetySeconds);
 //   // return payload.exp * 1000 < Date.now();
 // };

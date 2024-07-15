@@ -6,7 +6,7 @@ export  const isTokenExpired = (token: string) => {
     const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString('utf-8'));
     // console.log("expiration:",payload.exp * 1000," now:",Date.now())
     const issuedAt = payload.iat * 1000; // iatは秒単位なのでミリ秒に変換
-    const ninetySeconds = 9000 * 1000; // 90秒をミリ秒に変換
+    const ninetySeconds = 3600 * 1000; // 90秒をミリ秒に変換
     return Date.now() > (issuedAt + ninetySeconds);
     // return payload.exp * 1000 < Date.now();
     };
