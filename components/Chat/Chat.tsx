@@ -37,6 +37,8 @@ import { SystemPrompt } from './SystemPrompt';
 import { TemperatureSlider } from './Temperature';
 import { MemoizedChatMessage } from './MemoizedChatMessage';
 
+import { isTokenExpired, refreshJWTbytoken } from '@/pages/api/auth/token/tokencheck'
+
 interface Props {
   stopConversationRef: MutableRefObject<boolean>;
 }
@@ -97,6 +99,20 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
         });
         homeDispatch({ field: 'loading', value: true });
         homeDispatch({ field: 'messageIsStreaming', value: true });
+
+        let token = jwt;
+        console.log("chat_fetchmodel_start")
+        if (jwt && isTokenExpired(jwt)) {
+          console.log("chat_TokenExpired")
+          const storedoid = localStorage.getItem('oid');
+          console.log("storedoid",storedoid)
+          if (storedoid) {
+            console.log("put_start")
+            token = await refreshJWTbytoken(storedoid);
+            localStorage.setItem('jwt',token);
+            console.log("put_end", token)
+          }
+        };
 
         const chatBody: ChatBody = {
           model: updatedConversation.model,
