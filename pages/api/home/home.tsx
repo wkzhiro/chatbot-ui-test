@@ -197,32 +197,28 @@ const Home = ({
       fetchData()})
   }, [code]);
 
-  const fetchModels = useCallback(async (signal?: AbortSignal) => {
+  const fetchModels = async (signal?: AbortSignal) => {
     let token = jwt;
-    console.log("fetchmodel_start")
+    console.log("fetchmodel_start");
     if (jwt && isTokenExpired(jwt)) {
-      console.log("TokenExpired")
-
+      console.log("TokenExpired");
       const storedoid = localStorage.getItem('oid');
-      console.log("storedoid",storedoid)
       if (storedoid) {
-        console.log("put_start")
-        // const jsonrefreshtoken: string = JSON.parse(storedrefreshtoken);
+        console.log("put_start");
         token = await refreshJWTbytoken(storedoid);
         setJWT(token);
-        console.log("put_end", token)
       }
     }
-
+  
     if (!token) return null;
-
+  
     return getModels(
       {
         key: token,
       },
       signal,
     );
-  }, [jwt, getModels]);
+  };
 
   const { data, error, refetch } = useQuery(['GetModels', jwt], ({ signal }) => fetchModels(signal), {
     enabled: !!jwt,
