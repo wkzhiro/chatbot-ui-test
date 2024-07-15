@@ -109,6 +109,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           if (storedoid) {
             console.log("put_start")
             token = await refreshJWTbytoken(storedoid);
+            homeDispatch({ field: 'jwt', value: token }); // useContextのjwtを更新
             localStorage.setItem('jwt',token);
             console.log("put_end", token)
           }
