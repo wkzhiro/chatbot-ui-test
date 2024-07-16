@@ -163,43 +163,24 @@ const Home = ({
     const storedJwt = localStorage.getItem('jwt');
 
     const handleJWTVerification = async () => {
-      let verified = false;
-
+      // jwtが期限切れの有無に関わらず、ローカルストレージにjwtがある場合、jwtを更新
       if (storedJwt) {
-        console.log("storedJwt_models")
-        try {
-          const response = await axios.post('/api/models', { key: storedJwt });
-          if (response.status === 200) {
-            setJWT(storedJwt);
-            verified = true;
-          }
-        } catch (error) {
-          console.error('Error verifying stored JWT:', error);
+        const storedoid = localStorage.getItem('oid');
+        if (storedoid) {
+          const newJwt = await refreshJWTbytoken(storedoid);
+          setJWT(newJwt);
+        } else {
+          console.error('OID is missing in local storage.');
         }
-      }
-
-      if (!verified && jwt) {
-        console.log("Jwt_models")
-        try {
-          const response = await axios.post('/api/models', { key: jwt });
-          if (response.status === 200) {
-            setJWT(jwt);
-            verified = true;
-          }
-        } catch (error) {
-          console.error('Error verifying current JWT:', error);
-        }
-      }
-
-      if (!verified && code) {
+      // ローカルストレージにjwtがない場合、認証してjwtを発行し、jwtとoidをローカルストレージに登録
+      } else {
         console.log("code_models")
         try {
           const { data } = await axios.post('/api/auth/verify', { code });
           const newJwt = data.result.accessToken;
           const oid = data.oid;
-          console.log("result_verify",data)
+          // console.log("result_verify",data)
           setJWT(newJwt);
-          setRT(oid);
           // const oid = data.result.account?.idTokenClaims?.oid;
           if (oid) {
             setRT(oid);
@@ -216,71 +197,28 @@ const Home = ({
       fetchData()})
   }, [code]);
 
-  // // jwtを内部キャッシュでリフレッシュするAPIリクエスト
-  // const refreshJWT = async (account: AccountInfo) => {
-  //   const url = "/api/auth/verify";
-  //   const { data }: { data: AuthenticationResult } = await axios.put(url, {
-  //     account
-  //   });
-  //   const newToken = data.accessToken;
-  //   setJWT(newToken);
-  //   return newToken;
-  // };
-  
-//   // jwtを外部キャッシュでリフレッシュするAPIリクエスト
-//   const refreshJWTbytoken = async (oid: string) => {
-//     const url = "/api/auth/verify";
-//     const { data }: { data: AuthenticationResult } = await axios.put(url, {
-//       oid
-//     });
-//     const newToken = data.accessToken;
-//     setJWT(newToken);
-//     return newToken;
-//   };
-
-// // トークンの有効期限をチェックする関数
-// const isTokenExpired = (token: string) => {
-//   const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString('utf-8'));
-//   // console.log("expiration:",payload.exp * 1000," now:",Date.now())
-//   const issuedAt = payload.iat * 1000; // iatは秒単位なのでミリ秒に変換
-//   const ninetySeconds = 3600 * 1000; // 90秒をミリ秒に変換
-//   return Date.now() > (issuedAt + ninetySeconds);
-//   // return payload.exp * 1000 < Date.now();
-// };
-
-  const fetchModels = useCallback(async (signal?: AbortSignal) => {
+  const fetchModels = async (signal?: AbortSignal) => {
     let token = jwt;
-    console.log("fetchmodel_start")
+    console.log("fetchmodel_start");
     if (jwt && isTokenExpired(jwt)) {
-      console.log("TokenExpired")
-      // const storedAccount = localStorage.getItem('account');
-      // console.log("account_load",storedAccount)
-      // if (storedAccount) {
-      //   console.log("put_start")
-      //   const account: AccountInfo = JSON.parse(storedAccount);
-      //   token = await refreshJWT(account);
-      //   console.log("put_end")
-      // }
+      console.log("TokenExpired");
       const storedoid = localStorage.getItem('oid');
-      console.log("storedoid",storedoid)
       if (storedoid) {
-        console.log("put_start")
-        // const jsonrefreshtoken: string = JSON.parse(storedrefreshtoken);
+        console.log("put_start");
         token = await refreshJWTbytoken(storedoid);
         setJWT(token);
-        console.log("put_end", token)
       }
     }
-
+  
     if (!token) return null;
-
+  
     return getModels(
       {
         key: token,
       },
       signal,
     );
-  }, [jwt, getModels]);
+  };
 
   const { data, error, refetch } = useQuery(['GetModels', jwt], ({ signal }) => fetchModels(signal), {
     enabled: !!jwt,
