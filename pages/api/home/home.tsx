@@ -179,9 +179,7 @@ const Home = ({
           const { data } = await axios.post('/api/auth/verify', { code });
           const newJwt = data.result.accessToken;
           const oid = data.oid;
-          // console.log("result_verify",data)
           setJWT(newJwt);
-          // const oid = data.result.account?.idTokenClaims?.oid;
           if (oid) {
             setRT(oid);
           } else {
