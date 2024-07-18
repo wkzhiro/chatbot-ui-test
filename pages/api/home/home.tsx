@@ -145,7 +145,7 @@ const Home = ({
   const setRT = (oid: string) => {
     const crypto = require('crypto');
     const password = process.env.NEXT_PUBLIC_SALT as string;
-    console.log("password:",password);
+    console.log("password_home:",password);
     const algorithm = 'aes-256-cbc';
     
     const cipher = crypto.createCipher(algorithm, password);
@@ -180,6 +180,7 @@ const Home = ({
           const newJwt = data.result.accessToken;
           const oid = data.oid;
           setJWT(newJwt);
+          console.log("home_oid",oid)
           if (oid) {
             setRT(oid);
           } else {
