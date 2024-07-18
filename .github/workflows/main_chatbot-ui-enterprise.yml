@@ -21,9 +21,9 @@ jobs:
         with:
           node-version: '20.x'
 
-      - name: Set environment variables
+      - name: Create .env file
         run: |
-          echo "NEXT_PUBLIC_SALT=${{ secrets.NEXT_PUBLIC_API_URL }}" >> $GITHUB_ENV
+          echo "NEXT_PUBLIC_SALT=${{ secrets.NEXT_PUBLIC_SALT }}" >> .env
 
       - name: npm install, build, and test
         run: |
