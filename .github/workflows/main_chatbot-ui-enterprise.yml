@@ -78,5 +78,5 @@ jobs:
         uses: azure/webapps-deploy@v2
         with:
           app-name: 'chatbot-ui-enterprise'
-          slot-name: 'Production'
+          slot-name: 'staging'
           package: ./deploy
