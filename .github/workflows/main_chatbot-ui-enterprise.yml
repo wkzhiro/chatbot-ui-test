@@ -21,6 +21,10 @@ jobs:
         with:
           node-version: '20.x'
 
+      - name: Set environment variables
+        run: |
+          echo "NEXT_PUBLIC_SALT=${{ secrets.NEXT_PUBLIC_API_URL }}" >> $GITHUB_ENV
+
       - name: npm install, build, and test
         run: |
           npm install
