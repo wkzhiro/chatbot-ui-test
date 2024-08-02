@@ -1,4 +1,6 @@
+import { list } from 'postcss';
 import { OpenAIModel } from './openai';
+import { List } from 'postcss/lib/list';
 
 export interface Message {
   role: Role;
@@ -13,6 +15,20 @@ export interface ChatBody {
   key: string;
   prompt: string;
   temperature: number;
+}
+
+export interface RagBody {
+  model: OpenAIModel;
+  messages: Message[];
+  key: string;
+  prompt: string;
+  temperature: number;
+  field:string[];
+}
+
+export interface RagBody {
+  messages: Message[];
+  field:string[];
 }
 
 // tokencountを追加
