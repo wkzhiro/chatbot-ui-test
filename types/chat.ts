@@ -15,6 +15,7 @@ export interface ChatBody {
   temperature: number;
 }
 
+// tokencountを追加
 export interface Conversation {
   id: string;
   name: string;
@@ -24,4 +25,5 @@ export interface Conversation {
   temperature: number;
   folderId: string | null;
   oid?: string | null;
+  tokencount?: string | null;
 }

@@ -24,7 +24,6 @@ interface DecodedToken {
 const handler = async (req: Request): Promise<Response> => {
   try {
     const { model, messages, key, prompt, temperature } = (await req.json()) as ChatBody;
-    // console.log("log", key)
     //   // JWTトークンをデコード
     //   const decodedToken = jwtDecode<DecodedToken>(key);
     //   console.log("log", decodedToken)
@@ -55,21 +54,30 @@ const handler = async (req: Request): Promise<Response> => {
       temperatureToUse = DEFAULT_TEMPERATURE;
     }
 
+    // システムプロンプトのTokenカウント
     const prompt_tokens = encoding.encode(promptToSend);
 
     let tokenCount = prompt_tokens.length;
+    let savetokenCount = 0;
     let messagesToSend: Message[] = [];
-
+    
+    // messageのTokenカウント
     for (let i = messages.length - 1; i >= 0; i--) {
       const message = messages[i];
+      // console.log(message)
       const tokens = encoding.encode(message.content);
 
       if (tokenCount + tokens.length + 1000 > model.tokenLimit) {
+        console.log("break")
         break;
       }
       tokenCount += tokens.length;
       messagesToSend = [message, ...messagesToSend];
+
+      // 消費token数をDBに保存する用
+      savetokenCount += tokens.length;
     }
+
 
     const stream = await OpenAIStream(model, promptToSend, temperatureToUse, key, messagesToSend);
 
@@ -95,22 +103,26 @@ const handler = async (req: Request): Promise<Response> => {
       const response_tokens = encoding.encode(responseText);
       const responseTokenCount = response_tokens.length;
 
-      //// test : Save to Cosmos DB
+      // test : Save to Cosmos DB
       // const item = {
-      //  userid:oid,
+      //   // userid:oid,
       //   userId: 1,
       //   id: `chat-${Date.now()}`, // 任意の一意なIDを生成
       //   promptTokenCount: tokenCount,
       //   responseTokenCount: responseTokenCount,
       //   timestamp: new Date().toISOString()
       // };
+      // console.log(item)
 
       // await saveToCosmosDB(item);
 
       encoding.free();
     })();
 
-    return new Response(readable);
+    const headers = new Headers();
+    headers.append("X-Token-Count", savetokenCount.toString());
+
+    return new Response(readable, { headers });
   } catch (error) {
     const anyError = error as any; // errorをany型にキャスト
     console.error(anyError);

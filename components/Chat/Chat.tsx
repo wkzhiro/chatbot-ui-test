@@ -123,6 +123,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           prompt: updatedConversation.prompt,
           temperature: updatedConversation.temperature,
         };
+        // api/chatへfetchする
         const endpoint = getEndpoint(plugin);
         let body;
         if (!plugin) {
@@ -154,11 +155,16 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           return;
         }
         const data = response.body;
+        console.log("DATA",response)
         if (!data) {
           homeDispatch({ field: 'loading', value: false });
           homeDispatch({ field: 'messageIsStreaming', value: false });
           return;
         }
+        // 使用しているトークン数をカスタムヘッダーから取得
+        const tokencount = response.headers.get('X-Token-Count');
+        console.log('Token Count:', tokencount);
+
         if (!plugin) {
           if (updatedConversation.messages.length === 1) {
             const { content } = message;
@@ -220,6 +226,12 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
               });
             }
           }
+          // console.log(updatedConversation)
+          // tokenCount を updatedConversation に追加
+          updatedConversation = {
+            ...updatedConversation,
+            tokencount: tokencount,
+          };
           saveConversation(updatedConversation);
           const updatedConversations: Conversation[] = conversations.map(
             (conversation) => {
@@ -249,6 +261,10 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
             field: 'selectedConversation',
             value: updateConversation,
           });
+          updatedConversation = {
+            ...updatedConversation,
+            tokencount: tokencount,
+          };
           saveConversation(updatedConversation);
           const updatedConversations: Conversation[] = conversations.map(
             (conversation) => {
