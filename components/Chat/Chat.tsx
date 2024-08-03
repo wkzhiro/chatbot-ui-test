@@ -61,6 +61,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
       prompts,
       jwt,
       isRagChecked, // isRagCheckedを参照
+      selectedOptions=[],
     },
     handleUpdateConversation,
     dispatch: homeDispatch,
@@ -75,7 +76,6 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const [selectedFruit, setSelectedFruit] = useState('りんご'); // ラジオボタンの選択状態を管理
 
   const handleSend = useCallback(
     async (message: Message, deleteCount = 0, plugin: Plugin | null = null) => {
@@ -118,7 +118,12 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           }
         };
 
-        const chatBody: ChatBody = {
+        // chatリクエスト
+        let body;
+        // RAGなしのchatエンドポイント
+        let endpoint= getEndpoint(plugin);
+        // chatBodyの定義
+        const chatBody: ChatBody = { 
           model: updatedConversation.model,
           messages: updatedConversation.messages,
           // key: apiKey,
@@ -126,10 +131,17 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           prompt: updatedConversation.prompt,
           temperature: updatedConversation.temperature,
         };
-        // api/chatへfetchする
-        const endpoint = getEndpoint(plugin);
-        let body;
-        if (!plugin) {
+        // 1. リクエストbodyの作成
+        if(isRagChecked){
+          // RAGありのchatエンドポイントに変更
+          endpoint = '/api/rag';
+          // RAGあのbody
+          body = JSON.stringify({
+            ...chatBody,
+            field: selectedOptions,
+          });
+          console.log("body: ",body);
+        } else if (!plugin) {
           body = JSON.stringify(chatBody);
         } else {
           body = JSON.stringify({
@@ -143,6 +155,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           });
         }
         const controller = new AbortController();
+        // 2. api/chatまたはapi/ragへfetchでPOSTリクエスト
         const response = await fetch(endpoint, {
           method: 'POST',
           headers: {
@@ -157,8 +170,9 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           toast.error(response.statusText);
           return;
         }
+
         const data = response.body;
-        console.log("DATA",response)
+        console.log("chat DATA:",response)
         if (!data) {
           homeDispatch({ field: 'loading', value: false });
           homeDispatch({ field: 'messageIsStreaming', value: false });

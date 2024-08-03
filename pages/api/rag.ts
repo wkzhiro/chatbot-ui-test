@@ -22,7 +22,9 @@ interface DecodedToken {
 
 const handler = async (req: Request): Promise<Response> => {
     try {
-        const { messages, field } = (await req.json()) as RagBody;
+        const { messages, field } = (await req.json()) ;
+        console.log("Rag send messages: ", messages);
+        console.log("Rag send field: ", field);
 
         await init((imports) => WebAssembly.instantiate(wasm, imports));
         const encoding = new Tiktoken(
@@ -61,6 +63,7 @@ const handler = async (req: Request): Promise<Response> => {
             // 消費token数をDBに保存する用
             savetokenCount += tokens.length;
         }
+        console.log("tokenCount: ",tokenCount);
 
         const response = await fetch(
             RAG_END_POINT, 
@@ -71,15 +74,17 @@ const handler = async (req: Request): Promise<Response> => {
                 },
                 body: JSON.stringify({
                     "filed": field,
-                    "message": messagesToSend
+                    "messages": messagesToSend,
                 })
         });
+        // console.log("rag response: ",response);
 
         if (!response.ok) {
             throw new Error('Failed to fetch from Azure function');
         }
 
         const result = await response.json();
+        console.log("rag result: ",result);
 
         encoding.free();
 
