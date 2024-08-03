@@ -31,6 +31,8 @@ export interface HomeInitialState {
   jwt: string;  // JWTを追加
   oid: string;  // oidを追加
   isRagChecked: boolean;  // トグルスイッチの状態を追加
+  ragOptionList: string[];
+  selectedOptions: string[];
   selectedFruit: string;
 }
 
@@ -60,5 +62,7 @@ export const initialState: HomeInitialState = {
   jwt: '',  // 初期値を追加
   oid: '',
   isRagChecked: false,  // 初期値を追加
+  ragOptionList: [],
+  selectedOptions: [],
   selectedFruit: '',
 };

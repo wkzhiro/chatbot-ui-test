@@ -29,8 +29,8 @@ export const APIM_URL =
 export const SUBSCRIPTION_KEY =
   process.env.SUBSCRIPTION_KEY || '';
 
-export const SALT =
-  process.env.SALT || '';
+export const NEXT_PUBLIC_SALT =
+  process.env.NEXT_PUBLIC_SALT || '';
 
 export const  RAG_TOKEN_LIMIT: number = 
   Number(process.env.RAG_TOKEN_LIMIT) || 10000;

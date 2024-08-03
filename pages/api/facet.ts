@@ -10,7 +10,7 @@ const searchClient = new SearchClient(
     new AzureKeyCredential(COG_API_KEY)
 );
 
-const handler = async (res: NextApiResponse) => {
+const handler = async (req: NextApiRequest, res: NextApiResponse) :Promise<void>=> {
     const searchText = "*"; // 全文検索
     const facetField = "tags";
 
@@ -30,6 +30,7 @@ const handler = async (res: NextApiResponse) => {
         }
     } catch (error) {
         console.error("Error retrieving facets:", error);
+        console.log("Response object:", res);  // 追加
         res.status(500).json({ error: "Error retrieving facets" });
     }
 };

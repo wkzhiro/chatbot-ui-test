@@ -8,23 +8,41 @@ interface Props {
 
 const RagToggleSwitch: React.FC<Props> = ({ label }) => {
   const {
-    state: { isRagChecked },
+    state: { 
+        isRagChecked,
+        ragOptionList =[],
+        selectedOptions =[],
+     },
     dispatch,
   } = useContext(HomeContext);
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
 
-  const handleToggleChange = () => {
+  const fetchFacets = async () => {
+    try {
+        const response = await fetch('/api/facet');
+        const data = await response.json();
+        // console.log(data.tags);
+        dispatch({ field: 'ragOptionList', value: data.tags });
+        console.log('ragOptionList:',ragOptionList);
+    } catch (error) {
+        console.error('Error fetching facets:', error);
+    }
+  };
+
+  const handleToggleChange = async () => {
     const newChecked = !isRagChecked;
     dispatch({ field: 'isRagChecked', value: newChecked });
     if (newChecked) {
-      setIsDialogOpen(true);
+        // RagToggleSwithがONの時にファセット(タグ)のリストを取得
+        fetchFacets();
+        setIsDialogOpen(true);
     }
   };
 
   const handleDialogClose = () => {
     setIsDialogOpen(false);
+    console.log("selectedOptions;",selectedOptions);
   };
 
   const handleFruitAreaClick = () => {
@@ -73,8 +91,6 @@ const RagToggleSwitch: React.FC<Props> = ({ label }) => {
       <CheckboxDialog
         isOpen={isDialogOpen}
         onClose={handleDialogClose}
-        selectedOptions={selectedOptions}
-        onSelectionChange={setSelectedOptions}
       />
     </div>
   );
