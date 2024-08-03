@@ -37,7 +37,8 @@ import { SystemPrompt } from './SystemPrompt';
 import { TemperatureSlider } from './Temperature';
 import { MemoizedChatMessage } from './MemoizedChatMessage';
 
-import { isTokenExpired, refreshJWTbytoken } from '@/pages/api/auth/token/tokencheck'
+import { isTokenExpired, refreshJWTbytoken } from '@/pages/api/auth/token/tokencheck';
+import RagToggleSwitch from './RagToggleSwitch';
 
 interface Props {
   stopConversationRef: MutableRefObject<boolean>;
@@ -59,6 +60,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
       loading,
       prompts,
       jwt,
+      isRagChecked, // isRagCheckedを参照
     },
     handleUpdateConversation,
     dispatch: homeDispatch,
@@ -73,6 +75,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const [selectedFruit, setSelectedFruit] = useState('りんご'); // ラジオボタンの選択状態を管理
 
   const handleSend = useCallback(
     async (message: Message, deleteCount = 0, plugin: Plugin | null = null) => {
@@ -473,6 +476,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                           })
                         }
                       />
+                      <RagToggleSwitch label="RAG機能" />
                     </div>
                   )}
                 </div>
