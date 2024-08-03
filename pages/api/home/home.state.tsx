@@ -29,7 +29,9 @@ export interface HomeInitialState {
   serverSidePluginKeysSet: boolean;
   // serverSideJwtSet: boolean;
   jwt: string;  // JWTを追加
-  oid: string;  // JWTを追加
+  oid: string;  // oidを追加
+  isRagChecked: boolean;  // トグルスイッチの状態を追加
+  selectedFruit: string;
 }
 
 export const initialState: HomeInitialState = {
@@ -57,4 +59,6 @@ export const initialState: HomeInitialState = {
   // serverSideJwtSet: false,
   jwt: '',  // 初期値を追加
   oid: '',
+  isRagChecked: false,  // 初期値を追加
+  selectedFruit: '',
 };
