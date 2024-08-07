@@ -22,7 +22,7 @@ interface DecodedToken {
 
 const handler = async (req: Request): Promise<Response> => {
     try {
-        const { messages, field } = (await req.json()) ;
+        const { messages, field, key } = (await req.json()) ;
         console.log("Rag send messages: ", messages);
         console.log("Rag send field: ", field);
 
@@ -64,12 +64,15 @@ const handler = async (req: Request): Promise<Response> => {
             savetokenCount += tokens.length;
         }
         console.log("tokenCount: ",tokenCount);
+        console.log("tokenCount: ",RAG_END_POINT);
+
 
         const response = await fetch(
             RAG_END_POINT, 
             {
                 method: 'POST',
                 headers: {
+                    'Authorization': 'Bearer ' + key,
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify({
