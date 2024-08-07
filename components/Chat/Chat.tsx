@@ -37,7 +37,8 @@ import { SystemPrompt } from './SystemPrompt';
 import { TemperatureSlider } from './Temperature';
 import { MemoizedChatMessage } from './MemoizedChatMessage';
 
-import { isTokenExpired, refreshJWTbytoken } from '@/pages/api/auth/token/tokencheck'
+import { isTokenExpired, refreshJWTbytoken } from '@/pages/api/auth/token/tokencheck';
+import RagToggleSwitch from './RagToggleSwitch';
 
 interface Props {
   stopConversationRef: MutableRefObject<boolean>;
@@ -59,6 +60,8 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
       loading,
       prompts,
       jwt,
+      isRagChecked, // isRagCheckedを参照
+      selectedOptions=[],
     },
     handleUpdateConversation,
     dispatch: homeDispatch,
@@ -115,7 +118,12 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           }
         };
 
-        const chatBody: ChatBody = {
+        // chatリクエスト
+        let body;
+        // RAGなしのchatエンドポイント
+        let endpoint= getEndpoint(plugin);
+        // chatBodyの定義
+        const chatBody: ChatBody = { 
           model: updatedConversation.model,
           messages: updatedConversation.messages,
           // key: apiKey,
@@ -123,10 +131,17 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           prompt: updatedConversation.prompt,
           temperature: updatedConversation.temperature,
         };
-        // api/chatへfetchする
-        const endpoint = getEndpoint(plugin);
-        let body;
-        if (!plugin) {
+        // 1. リクエストbodyの作成
+        if(isRagChecked){
+          // RAGありのchatエンドポイントに変更
+          endpoint = '/api/rag';
+          // RAGあのbody
+          body = JSON.stringify({
+            ...chatBody,
+            field: selectedOptions,
+          });
+          console.log("body: ",body);
+        } else if (!plugin) {
           body = JSON.stringify(chatBody);
         } else {
           body = JSON.stringify({
@@ -140,6 +155,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           });
         }
         const controller = new AbortController();
+        // 2. api/chatまたはapi/ragへfetchでPOSTリクエスト
         const response = await fetch(endpoint, {
           method: 'POST',
           headers: {
@@ -154,8 +170,9 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           toast.error(response.statusText);
           return;
         }
+
         const data = response.body;
-        console.log("DATA",response)
+        console.log("chat DATA:",response)
         if (!data) {
           homeDispatch({ field: 'loading', value: false });
           homeDispatch({ field: 'messageIsStreaming', value: false });
@@ -191,6 +208,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
             done = doneReading;
             const chunkValue = decoder.decode(value);
             text += chunkValue;
+            console.log(chunkValue);
             if (isFirst) {
               isFirst = false;
               const updatedMessages: Message[] = [
@@ -473,6 +491,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                           })
                         }
                       />
+                      <RagToggleSwitch label="RAG機能" />
                     </div>
                   )}
                 </div>

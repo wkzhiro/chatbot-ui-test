@@ -24,18 +24,6 @@ interface DecodedToken {
 const handler = async (req: Request): Promise<Response> => {
   try {
     const { model, messages, key, prompt, temperature } = (await req.json()) as ChatBody;
-    //   // JWTトークンをデコード
-    //   const decodedToken = jwtDecode<DecodedToken>(key);
-    //   console.log("log", decodedToken)
-    //   // `oid`フィールドを取得
-    //   const oid = decodedToken.oid;
-    //   // console.log("OID:", oid);
-    //   // console.log("OID:", oid);
-    
-    //  try {
-    //  } catch (error) {
-    //   console.error("Error decoding JWT token:", error);
-    //  }
 
     await init((imports) => WebAssembly.instantiate(wasm, imports));
     const encoding = new Tiktoken(
