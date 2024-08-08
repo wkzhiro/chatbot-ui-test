@@ -72,6 +72,8 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
   const [showSettings, setShowSettings] = useState<boolean>(false);
   const [showScrollDownButton, setShowScrollDownButton] =
     useState<boolean>(false);
+  // isRagCheckedのローカルなコピーを管理するためのstate
+  const [localIsRagChecked, setLocalIsRagChecked] = useState(isRagChecked);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -132,6 +134,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           temperature: updatedConversation.temperature,
         };
         // 1. リクエストbodyの作成
+        console.log("isRagChecked: ",isRagChecked);
         if(isRagChecked){
           // RAGありのchatエンドポイントに変更
           endpoint = '/api/rag';
@@ -198,50 +201,105 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           let done = false;
           let isFirst = true;
           let text = '';
-          while (!done) {
-            if (stopConversationRef.current === true) {
-              controller.abort();
-              done = true;
-              break;
+          // RAG onの表示
+          if(isRagChecked){ 
+            let fullChunkValue = '';
+            let done = false;
+            while (!done) {
+                const { value, done: doneReading } = await reader.read();
+                done = doneReading;
+                fullChunkValue += decoder.decode(value, { stream: true });
             }
-            const { value, done: doneReading } = await reader.read();
-            done = doneReading;
-            const chunkValue = decoder.decode(value);
-            text += chunkValue;
-            console.log(chunkValue);
-            if (isFirst) {
-              isFirst = false;
-              const updatedMessages: Message[] = [
-                ...updatedConversation.messages,
-                { role: 'assistant', content: chunkValue },
-              ];
-              updatedConversation = {
-                ...updatedConversation,
-                messages: updatedMessages,
-              };
-              homeDispatch({
-                field: 'selectedConversation',
-                value: updatedConversation,
-              });
-            } else {
-              const updatedMessages: Message[] =
-                updatedConversation.messages.map((message, index) => {
-                  if (index === updatedConversation.messages.length - 1) {
-                    return {
-                      ...message,
-                      content: text,
-                    };
-                  }
-                  return message;
+            try {
+                const parsedData = JSON.parse(fullChunkValue);
+                // parsedData を使用して後続の処理を行う
+                const answer = parsedData.answer.replace(/\\n/g, '\n');
+                const siteList = parsedData.site.map((site: string) => `- ${site}`).join('\n');
+                fullChunkValue = `${answer}\n\n参照サイト:\n${siteList}`;
+                if (isFirst) {
+                  isFirst = false;
+                  const updatedMessages: Message[] = [
+                    ...updatedConversation.messages,
+                    { role: 'assistant', content: fullChunkValue },
+                  ];
+                  updatedConversation = {
+                    ...updatedConversation,
+                    messages: updatedMessages,
+                  };
+                  homeDispatch({
+                    field: 'selectedConversation',
+                    value: updatedConversation,
+                  });
+                } else {
+                  const updatedMessages: Message[] =
+                    updatedConversation.messages.map((message, index) => {
+                      if (index === updatedConversation.messages.length - 1) {
+                        return {
+                          ...message,
+                          content: fullChunkValue,
+                        };
+                      }
+                      return message;
+                    });
+                  updatedConversation = {
+                    ...updatedConversation,
+                    messages: updatedMessages,
+                  };
+                  homeDispatch({
+                    field: 'selectedConversation',
+                    value: updatedConversation,
+                  });
+                }
+            } catch (error) {
+                console.error('Error parsing JSON:', error);
+            }
+
+          // RAG offの表示
+          } else{
+            while (!done) {
+              if (stopConversationRef.current === true) {
+                controller.abort();
+                done = true;
+                break;
+              }
+              const { value, done: doneReading } = await reader.read();
+              done = doneReading;
+              let chunkValue = decoder.decode(value);
+              text += chunkValue;
+              if (isFirst) {
+                isFirst = false;
+                const updatedMessages: Message[] = [
+                  ...updatedConversation.messages,
+                  { role: 'assistant', content: chunkValue },
+                ];
+                updatedConversation = {
+                  ...updatedConversation,
+                  messages: updatedMessages,
+                };
+                homeDispatch({
+                  field: 'selectedConversation',
+                  value: updatedConversation,
                 });
-              updatedConversation = {
-                ...updatedConversation,
-                messages: updatedMessages,
-              };
-              homeDispatch({
-                field: 'selectedConversation',
-                value: updatedConversation,
-              });
+              } else {
+                const updatedMessages: Message[] =
+                  updatedConversation.messages.map((message, index) => {
+                    if (index === updatedConversation.messages.length - 1) {
+                      return {
+                        ...message,
+                        content: text,
+                      };
+                    }
+                    return message;
+                  });
+                updatedConversation = {
+                  ...updatedConversation,
+                  messages: updatedMessages,
+                };
+                homeDispatch({
+                  field: 'selectedConversation',
+                  value: updatedConversation,
+                });
+              }
             }
           }
           // console.log(updatedConversation)
@@ -308,6 +366,8 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
       pluginKeys,
       selectedConversation,
       stopConversationRef,
+      isRagChecked,
+      selectedOptions,
       jwt,
     ],
   );
@@ -405,6 +465,13 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
     };
   }, [messagesEndRef]);
 
+  useEffect(() => {
+    homeDispatch({ field: 'isRagChecked', value: localIsRagChecked });
+    console.log("1)localIsRagChecked changed:", localIsRagChecked);
+    console.log("2)isRagChecked changed:", isRagChecked);
+  }, [localIsRagChecked]);
+
+
   return (
     <div className="relative flex-1 overflow-hidden bg-[#f8f4e6] dark:bg-[#343541]">
       {!(apiKey || serverSideApiKeyIsSet) ? (
@@ -491,7 +558,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                           })
                         }
                       />
-                      <RagToggleSwitch label="RAG機能" />
+                      <RagToggleSwitch label="RAG機能" isRagChecked={localIsRagChecked} setLocalIsRagChecked={setLocalIsRagChecked}/>
                     </div>
                   )}
                 </div>
