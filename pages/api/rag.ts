@@ -88,15 +88,15 @@ const handler = async (req: Request): Promise<Response> => {
 
         encoding.free();
 
-        const combinedResult = {
-            answer: result.answer + '\n\n### 参考サイト\n' + result.site.map((s: string) => `- ${s}`).join('\n'),
-        };
+        // const combinedResult = {
+        //     answer: result.answer + '\n\n### 参考サイト\n' + result.site.map((s: string) => `- ${s}`).join('\n'),
+        // };
 
         const headers = new Headers();
         headers.append("Content-Type", "application/json");
         headers.append("X-Token-Count", tokenCount.toString());
 
-        return new Response(JSON.stringify(combinedResult), {
+        return new Response(JSON.stringify(result), {
             status: 200,
             headers: headers
         });
