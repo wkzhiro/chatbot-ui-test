@@ -72,8 +72,6 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
   const [showSettings, setShowSettings] = useState<boolean>(false);
   const [showScrollDownButton, setShowScrollDownButton] =
     useState<boolean>(false);
-  // isRagCheckedのローカルなコピーを管理するためのstate
-  const [localIsRagChecked, setLocalIsRagChecked] = useState(isRagChecked);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatContainerRef = useRef<HTMLDivElement>(null);
@@ -465,13 +463,6 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
     };
   }, [messagesEndRef]);
 
-  useEffect(() => {
-    homeDispatch({ field: 'isRagChecked', value: localIsRagChecked });
-    console.log("1)localIsRagChecked changed:", localIsRagChecked);
-    console.log("2)isRagChecked changed:", isRagChecked);
-  }, [localIsRagChecked]);
-
-
   return (
     <div className="relative flex-1 overflow-hidden bg-[#f8f4e6] dark:bg-[#343541]">
       {!(apiKey || serverSideApiKeyIsSet) ? (
@@ -558,7 +549,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                           })
                         }
                       />
-                      <RagToggleSwitch label="RAG機能" isRagChecked={localIsRagChecked} setLocalIsRagChecked={setLocalIsRagChecked}/>
+                      <RagToggleSwitch label="RAG機能" />
                     </div>
                   )}
                 </div>
