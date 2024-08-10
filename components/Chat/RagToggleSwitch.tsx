@@ -1,15 +1,16 @@
-import React, { useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, FC } from 'react';
 import CheckboxDialog from './RagCheckboxDialog';
 import HomeContext from '@/pages/api/home/home.context';
 
 interface Props {
   label: string;
+  isRagChecked: boolean;
+  setLocalIsRagChecked:(isRagChecked: boolean) => void;
 }
 
-const RagToggleSwitch: React.FC<Props> = ({ label }) => {
+const RagToggleSwitch: React.FC<Props> = ({ label, isRagChecked, setLocalIsRagChecked}) => {
   const {
     state: { 
-        isRagChecked,
         ragOptionList =[],
         selectedOptions =[],
      },
@@ -32,11 +33,10 @@ const RagToggleSwitch: React.FC<Props> = ({ label }) => {
 
   const handleToggleChange = async () => {
     const newChecked = !isRagChecked;
-    dispatch({ field: 'isRagChecked', value: newChecked });
+    setLocalIsRagChecked(newChecked);
     if (newChecked) {
-        // RagToggleSwithがONの時にファセット(タグ)のリストを取得
-        fetchFacets();
-        setIsDialogOpen(true);
+      fetchFacets();
+      setIsDialogOpen(true);
     }
   };
 

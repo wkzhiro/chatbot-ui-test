@@ -33,7 +33,6 @@ export interface HomeInitialState {
   isRagChecked: boolean;  // トグルスイッチの状態を追加
   ragOptionList: string[];
   selectedOptions: string[];
-  selectedFruit: string;
 }
 
 export const initialState: HomeInitialState = {
@@ -64,5 +63,4 @@ export const initialState: HomeInitialState = {
   isRagChecked: false,  // 初期値を追加
   ragOptionList: [],
   selectedOptions: [],
-  selectedFruit: '',
 };
