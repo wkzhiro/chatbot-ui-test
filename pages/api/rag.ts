@@ -22,7 +22,7 @@ interface DecodedToken {
 
 const handler = async (req: Request): Promise<Response> => {
     try {
-        const { messages, field, key } = (await req.json()) ;
+        const { messages, field, model, key } = (await req.json()) ;
         console.log("Rag send messages: ", messages);
         console.log("Rag send field: ", field);
 
