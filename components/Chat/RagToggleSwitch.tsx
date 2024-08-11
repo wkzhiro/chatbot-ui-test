@@ -72,10 +72,10 @@ const RagToggleSwitch: React.FC<Props> = ({ label}) => {
 
       {selectedOptions.length > 0 && isRagChecked && (
         <div
-          className="mt-4 p-4 border border-neutral-200 bg-transparent rounded-lg cursor-pointer relative dark:border-neutral-600 z-10"
+          className="mt-4 p-4 border border-neutral-200 bg-transparent rounded-lg cursor-pointer relative dark:border-neutral-600"
           onClick={handleDialogAreaClick}
         >
-          <span className="absolute top-0 left-2 transform -translate-y-1/2 bg-white px-1 text-sm text-neutral-700 dark:bg-[#343541] dark:text-neutral-400 pointer-events-none z-0">
+          <span className="absolute top-0 left-2 transform -translate-y-1/2 bg-white px-1 text-sm text-neutral-700 dark:bg-[#343541] dark:text-neutral-400 pointer-events-none">
             タグの選択
           </span>
           {selectedOptions.map((option, index) => (

@@ -553,6 +553,10 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                       <RagToggleSwitch label="RAG機能" />
                     </div>
                   )}
+                  <div
+                      className="h-[124px] bg-white dark:bg-[#343541]"
+                      ref={messagesEndRef}
+                  />
                 </div>
               </>
             ) : (
