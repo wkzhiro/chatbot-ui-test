@@ -1,9 +1,6 @@
 import { FC, useContext, useState } from 'react';
-
 import { useTranslation } from 'next-i18next';
-
 import { DEFAULT_TEMPERATURE } from '@/utils/app/const';
-
 import HomeContext from '@/pages/api/home/home.context';
 
 interface Props {
@@ -30,7 +27,7 @@ export const TemperatureSlider: FC<Props> = ({
   };
 
   return (
-    <div className="flex flex-col">
+    <div className="relative flex flex-col">
       <label className="mb-2 text-left text-neutral-700 dark:text-neutral-400">
         {label}
       </label>
@@ -51,17 +48,18 @@ export const TemperatureSlider: FC<Props> = ({
         value={temperature}
         onChange={handleChange}
       />
-      <ul className="w mt-2 pb-8 flex justify-between px-[24px] text-neutral-900 dark:text-neutral-100">
+      <ul className="absolute bottom-[12px] left-0 right-0 flex justify-between px-[8px] text-neutral-900 dark:text-neutral-100">
         <li className="flex justify-center">
-          <span className="absolute">{t('Precise')}</span>
+          <span>{t('Precise')}</span>
         </li>
         <li className="flex justify-center">
-          <span className="absolute">{t('Neutral')}</span>
+          <span>{t('Neutral')}</span>
         </li>
         <li className="flex justify-center">
-          <span className="absolute">{t('Creative')}</span>
+          <span>{t('Creative')}</span>
         </li>
       </ul>
+      <div className="mt-8"></div> {/* さらに下のコンポーネントとの距離を調整 */}
     </div>
   );
 };
