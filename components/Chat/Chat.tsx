@@ -132,6 +132,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           temperature: updatedConversation.temperature,
         };
         // 1. リクエストbodyの作成
+        console.log("model",updatedConversation.model)
         console.log("isRagChecked: ",isRagChecked);
         if(isRagChecked){
           // RAGありのchatエンドポイントに変更

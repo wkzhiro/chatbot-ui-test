@@ -25,6 +25,7 @@ const handler = async (req: Request): Promise<Response> => {
         const { messages, field, model, key } = (await req.json()) ;
         console.log("Rag send messages: ", messages);
         console.log("Rag send field: ", field);
+        console.log("model",model.id)
 
         await init((imports) => WebAssembly.instantiate(wasm, imports));
         const encoding = new Tiktoken(
@@ -64,7 +65,7 @@ const handler = async (req: Request): Promise<Response> => {
             savetokenCount += tokens.length;
         }
         console.log("tokenCount: ",tokenCount);
-        console.log("tokenCount: ",RAG_END_POINT);
+        console.log("RAG_END_POINT: ",RAG_END_POINT);
 
 
         const response = await fetch(
@@ -77,6 +78,7 @@ const handler = async (req: Request): Promise<Response> => {
                 },
                 body: JSON.stringify({
                     "filed": field,
+                    "model":model.id,
                     "messages": messagesToSend,
                 })
         });
