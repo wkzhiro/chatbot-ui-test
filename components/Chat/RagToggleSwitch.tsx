@@ -12,7 +12,8 @@ const RagToggleSwitch: React.FC<Props> = ({ label}) => {
         isRagChecked, 
         ragOptionList =[],
         selectedOptions =[],
-     },
+        jwt
+    },
     dispatch,
   } = useContext(HomeContext);
 
@@ -20,7 +21,17 @@ const RagToggleSwitch: React.FC<Props> = ({ label}) => {
 
   const fetchFacets = async () => {
     try {
-        const response = await fetch('/api/facet');
+        const response = await fetch('/api/facet',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              key: jwt 
+          })
+        }
+        );
         const data = await response.json();
         // console.log(data.tags);
         dispatch({ field: 'ragOptionList', value: data.tags });
