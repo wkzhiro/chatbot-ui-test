@@ -46,3 +46,7 @@ export const COG_API_KEY =
 
 export const RAG_END_POINT = 
   process.env.RAG_END_POINT  || '';
+
+export const COG_TAGS_END_POINT = 
+  process.env.COG_TAGS_END_POINT  || '';
+  
