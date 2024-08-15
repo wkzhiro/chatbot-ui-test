@@ -83,7 +83,8 @@ const Home = ({
       prompts,
       temperature,
       jwt,  // JWTの状態を取得
-      oid
+      oid,
+      ragOptionList
     },
     dispatch,
   } = contextValue;
@@ -196,6 +197,27 @@ const Home = ({
       fetchData()})
   }, [code]);
 
+  // RAGのタグを取得する関数
+  const fetchFacets = async () => {
+    try {
+        const response = await fetch('/api/facet',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              key: jwt 
+          })
+        }
+        );
+        const data = await response.json();
+        dispatch({ field: 'ragOptionList', value: data.tags });
+    } catch (error) {
+        console.error('Error fetching facets:', error);
+    }
+  };
+
   const fetchModels = async (signal?: AbortSignal) => {
     let token = jwt;
     console.log("fetchmodel_start");
@@ -210,6 +232,8 @@ const Home = ({
     }
   
     if (!token) return null;
+    // RAGのタグを取得
+    fetchFacets();
   
     return getModels(
       {
