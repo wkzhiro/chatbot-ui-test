@@ -29,5 +29,24 @@ export const APIM_URL =
 export const SUBSCRIPTION_KEY =
   process.env.SUBSCRIPTION_KEY || '';
 
-export const SALT =
-  process.env.SALT || '';
+export const NEXT_PUBLIC_SALT =
+  process.env.NEXT_PUBLIC_SALT || '';
+
+export const  RAG_TOKEN_LIMIT: number = 
+  Number(process.env.RAG_TOKEN_LIMIT) || 10000;
+
+export const COG_END_POINT=
+  process.env.COG_END_POINT || '';
+
+export const INDEX_NAME = 
+  process.env.INDEX_NAME || '';
+
+export const COG_API_KEY = 
+  process.env.COG_API_KEY || '';
+
+export const RAG_END_POINT = 
+  process.env.RAG_END_POINT  || '';
+
+export const COG_TAGS_END_POINT = 
+  process.env.COG_TAGS_END_POINT  || '';
+  

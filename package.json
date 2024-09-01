@@ -14,6 +14,7 @@
   "dependencies": {
     "@azure/cosmos": "^4.0.0",
     "@azure/msal-node": "^2.9.2",
+    "@azure/search-documents": "^12.1.0",
     "@dqbd/tiktoken": "^1.0.2",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",

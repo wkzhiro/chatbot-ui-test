@@ -41,3 +41,17 @@ html {
 pre:has(div.codeblock) {
   padding: 0;
 }
+
+/* トグルスイッチ用のCSS */
+.toggle-checkbox:checked {
+  right: 0;
+  border-color: #68d391;
+}
+
+.toggle-checkbox:checked + .toggle-label {
+  background-color: #68d391;
+}
+
+.toggle-label {
+  width: 42px;
+}

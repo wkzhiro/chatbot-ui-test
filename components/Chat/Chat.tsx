@@ -37,7 +37,8 @@ import { SystemPrompt } from './SystemPrompt';
 import { TemperatureSlider } from './Temperature';
 import { MemoizedChatMessage } from './MemoizedChatMessage';
 
-import { isTokenExpired, refreshJWTbytoken } from '@/pages/api/auth/token/tokencheck'
+import { isTokenExpired, refreshJWTbytoken } from '@/pages/api/auth/token/tokencheck';
+import RagToggleSwitch from './RagToggleSwitch';
 
 interface Props {
   stopConversationRef: MutableRefObject<boolean>;
@@ -59,6 +60,8 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
       loading,
       prompts,
       jwt,
+      isRagChecked, // isRagCheckedを参照
+      selectedOptions=[],
     },
     handleUpdateConversation,
     dispatch: homeDispatch,
@@ -115,7 +118,12 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           }
         };
 
-        const chatBody: ChatBody = {
+        // chatリクエスト
+        let body;
+        // RAGなしのchatエンドポイント
+        let endpoint= getEndpoint(plugin);
+        // chatBodyの定義
+        const chatBody: ChatBody = { 
           model: updatedConversation.model,
           messages: updatedConversation.messages,
           // key: apiKey,
@@ -123,9 +131,19 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           prompt: updatedConversation.prompt,
           temperature: updatedConversation.temperature,
         };
-        const endpoint = getEndpoint(plugin);
-        let body;
-        if (!plugin) {
+        // 1. リクエストbodyの作成
+        console.log("model",updatedConversation.model)
+        console.log("isRagChecked: ",isRagChecked);
+        if(isRagChecked){
+          // RAGありのchatエンドポイントに変更
+          endpoint = '/api/rag';
+          // RAGあのbody
+          body = JSON.stringify({
+            ...chatBody,
+            field: selectedOptions,
+          });
+          console.log("body: ",body);
+        } else if (!plugin) {
           body = JSON.stringify(chatBody);
         } else {
           body = JSON.stringify({
@@ -139,6 +157,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           });
         }
         const controller = new AbortController();
+        // 2. api/chatまたはapi/ragへfetchでPOSTリクエスト
         const response = await fetch(endpoint, {
           method: 'POST',
           headers: {
@@ -153,12 +172,18 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           toast.error(response.statusText);
           return;
         }
+
         const data = response.body;
+        console.log("chat DATA:",response)
         if (!data) {
           homeDispatch({ field: 'loading', value: false });
           homeDispatch({ field: 'messageIsStreaming', value: false });
           return;
         }
+        // 使用しているトークン数をカスタムヘッダーから取得
+        const tokencount = response.headers.get('X-Token-Count');
+        console.log('Token Count:', tokencount);
+
         if (!plugin) {
           if (updatedConversation.messages.length === 1) {
             const { content } = message;
@@ -175,51 +200,113 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
           let done = false;
           let isFirst = true;
           let text = '';
-          while (!done) {
-            if (stopConversationRef.current === true) {
-              controller.abort();
-              done = true;
-              break;
+          // RAG onの表示
+          if(isRagChecked){ 
+            let fullChunkValue = '';
+            let done = false;
+            while (!done) {
+                const { value, done: doneReading } = await reader.read();
+                done = doneReading;
+                fullChunkValue += decoder.decode(value, { stream: true });
             }
-            const { value, done: doneReading } = await reader.read();
-            done = doneReading;
-            const chunkValue = decoder.decode(value);
-            text += chunkValue;
-            if (isFirst) {
-              isFirst = false;
-              const updatedMessages: Message[] = [
-                ...updatedConversation.messages,
-                { role: 'assistant', content: chunkValue },
-              ];
-              updatedConversation = {
-                ...updatedConversation,
-                messages: updatedMessages,
-              };
-              homeDispatch({
-                field: 'selectedConversation',
-                value: updatedConversation,
-              });
-            } else {
-              const updatedMessages: Message[] =
-                updatedConversation.messages.map((message, index) => {
-                  if (index === updatedConversation.messages.length - 1) {
-                    return {
-                      ...message,
-                      content: text,
-                    };
-                  }
-                  return message;
+            try {
+                const parsedData = JSON.parse(fullChunkValue);
+                // parsedData を使用して後続の処理を行う
+                const answer = parsedData.answer.replace(/\\n/g, '\n');
+                const siteList = parsedData.site.map((site: string) => `- ${site}`).join('\n');
+                fullChunkValue = `${answer}\n\n参照サイト:\n${siteList}`;
+                if (isFirst) {
+                  isFirst = false;
+                  const updatedMessages: Message[] = [
+                    ...updatedConversation.messages,
+                    { role: 'assistant', content: fullChunkValue },
+                  ];
+                  updatedConversation = {
+                    ...updatedConversation,
+                    messages: updatedMessages,
+                  };
+                  homeDispatch({
+                    field: 'selectedConversation',
+                    value: updatedConversation,
+                  });
+                } else {
+                  const updatedMessages: Message[] =
+                    updatedConversation.messages.map((message, index) => {
+                      if (index === updatedConversation.messages.length - 1) {
+                        return {
+                          ...message,
+                          content: fullChunkValue,
+                        };
+                      }
+                      return message;
+                    });
+                  updatedConversation = {
+                    ...updatedConversation,
+                    messages: updatedMessages,
+                  };
+                  homeDispatch({
+                    field: 'selectedConversation',
+                    value: updatedConversation,
+                  });
+                }
+            } catch (error) {
+                console.error('Error parsing JSON:', error);
+            }
+
+          // RAG offの表示
+          } else{
+            while (!done) {
+              if (stopConversationRef.current === true) {
+                controller.abort();
+                done = true;
+                break;
+              }
+              const { value, done: doneReading } = await reader.read();
+              done = doneReading;
+              let chunkValue = decoder.decode(value);
+              text += chunkValue;
+              if (isFirst) {
+                isFirst = false;
+                const updatedMessages: Message[] = [
+                  ...updatedConversation.messages,
+                  { role: 'assistant', content: chunkValue },
+                ];
+                updatedConversation = {
+                  ...updatedConversation,
+                  messages: updatedMessages,
+                };
+                homeDispatch({
+                  field: 'selectedConversation',
+                  value: updatedConversation,
                 });
-              updatedConversation = {
-                ...updatedConversation,
-                messages: updatedMessages,
-              };
-              homeDispatch({
-                field: 'selectedConversation',
-                value: updatedConversation,
-              });
+              } else {
+                const updatedMessages: Message[] =
+                  updatedConversation.messages.map((message, index) => {
+                    if (index === updatedConversation.messages.length - 1) {
+                      return {
+                        ...message,
+                        content: text,
+                      };
+                    }
+                    return message;
+                  });
+                updatedConversation = {
+                  ...updatedConversation,
+                  messages: updatedMessages,
+                };
+                homeDispatch({
+                  field: 'selectedConversation',
+                  value: updatedConversation,
+                });
+              }
             }
           }
+          // console.log(updatedConversation)
+          // tokenCount を updatedConversation に追加
+          updatedConversation = {
+            ...updatedConversation,
+            tokencount: tokencount,
+          };
           saveConversation(updatedConversation);
           const updatedConversations: Conversation[] = conversations.map(
             (conversation) => {
@@ -249,6 +336,10 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
             field: 'selectedConversation',
             value: updateConversation,
           });
+          updatedConversation = {
+            ...updatedConversation,
+            tokencount: tokencount,
+          };
           saveConversation(updatedConversation);
           const updatedConversations: Conversation[] = conversations.map(
             (conversation) => {
@@ -274,6 +365,8 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
       pluginKeys,
       selectedConversation,
       stopConversationRef,
+      isRagChecked,
+      selectedOptions,
       jwt,
     ],
   );
@@ -429,7 +522,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                         <Spinner size="16px" className="mx-auto" />
                       </div>
                     ) : (
-                      'Chatbot UI'
+                      'Chatbot UI Production test for 7th'
                     )}
                   </div>
 
@@ -457,35 +550,44 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                           })
                         }
                       />
+                      <RagToggleSwitch label="RAG機能" />
                     </div>
                   )}
+                  <div
+                      className="h-[124px] bg-white dark:bg-[#343541]"
+                      ref={messagesEndRef}
+                  />
                 </div>
               </>
             ) : (
               <>
-                <div className="sticky top-0 z-10 flex justify-center border border-b-neutral-300 bg-[#f8f4e6] py-2 text-sm text-neutral-500 dark:border-none dark:bg-[#444654] dark:text-neutral-200">
-                  {t('Model')}: {selectedConversation?.model.name} | {t('Temp')}
-                  : {selectedConversation?.temperature} |
-                  <button
-                    className="ml-2 cursor-pointer hover:opacity-50"
-                    onClick={handleSettings}
-                  >
-                    <IconSettings size={18} />
-                  </button>
-                  <button
-                    className="ml-2 cursor-pointer hover:opacity-50"
-                    onClick={onClearAll}
-                  >
-                    <IconClearAll size={18} />
-                  </button>
-                </div>
-                {showSettings && (
-                  <div className="flex flex-col space-y-10 md:mx-auto md:max-w-xl md:gap-6 md:py-3 md:pt-6 lg:max-w-2xl lg:px-0 xl:max-w-3xl">
-                    <div className="flex h-full flex-col space-y-4 border-b border-neutral-200 p-4 dark:border-neutral-600 md:rounded-lg md:border">
-                      <ModelSelect />
-                    </div>
+                <div className="sticky top-0 z-10">
+                  <div className="flex justify-center border border-b-neutral-300 bg-[#f8f4e6] py-2 text-sm text-neutral-500 dark:border-none dark:bg-[#444654] dark:text-neutral-200">
+                    {t('Model')}: {selectedConversation?.model.name} | {t('Temp')}
+                    : {selectedConversation?.temperature} |
+                    <button
+                      className="ml-2 cursor-pointer hover:opacity-50"
+                      onClick={handleSettings}
+                    >
+                      <IconSettings size={18} />
+                    </button>
+                    <button
+                      className="ml-2 cursor-pointer hover:opacity-50"
+                      onClick={onClearAll}
+                    >
+                      <IconClearAll size={18} />
+                    </button>
                   </div>
-                )}
+                  
+                  {showSettings && (
+                    <div className="bg-[#f8f4e6] dark:bg-[#343541] border-b border-neutral-300 dark:border-neutral-600 p-4 shadow-md">
+                      <div className="flex h-full flex-col space-y-4 m-auto md:max-w-2xl lg:max-w-2xl xl:max-w-3xl">
+                        <ModelSelect />
+                        <RagToggleSwitch label="RAG機能" />
+                      </div>
+                    </div>
+                  )}
+                </div>
 
                 {selectedConversation?.messages.map((message, index) => (
                   <MemoizedChatMessage
