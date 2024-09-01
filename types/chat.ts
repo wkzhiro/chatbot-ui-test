@@ -25,4 +25,5 @@ export interface Conversation {
   folderId: string | null;
   oid?: string | null;
   display: boolean | null;
+  tokencount?: string | null;
 }
