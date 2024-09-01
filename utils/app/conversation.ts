@@ -13,6 +13,12 @@ export const updateConversation = (
   updatedConversation: Conversation,
   allConversations: Conversation[],
 ) => {
+  
+  // displayプロパティがnullの場合、trueに設定
+  if (updatedConversation.display === null) {
+    updatedConversation.display = true;
+  }
+
   const updatedConversations = allConversations.map((c) => {
     if (c.id === updatedConversation.id) {
       return updatedConversation;
