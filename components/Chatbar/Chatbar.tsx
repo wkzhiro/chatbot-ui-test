@@ -1,15 +1,16 @@
-import { useCallback, useContext, useEffect } from 'react';
+import { useCallback, useContext, useEffect, useMemo } from 'react';
 
 import { useTranslation } from 'next-i18next';
 
 import { useCreateReducer } from '@/hooks/useCreateReducer';
 
-import { updateItemInCosmosDB } from '@/pages/api/cosmos'; // このインポートを追加
+//import { updateItemInCosmosDB } from '@/pages/api/cosmos'; // このインポートを追加
 
 import { DEFAULT_SYSTEM_PROMPT, DEFAULT_TEMPERATURE } from '@/utils/app/const';
 import { saveConversation, saveConversations } from '@/utils/app/conversation';
 import { saveFolders } from '@/utils/app/folders';
 import { exportData, importData } from '@/utils/app/importExport';
+import {  cleanConversationHistory } from '@/utils/app/clean';
 
 import { Conversation } from '@/types/chat';
 import { LatestExportFormat, SupportedExportFormats } from '@/types/export';
@@ -27,6 +28,7 @@ import ChatbarContext from './Chatbar.context';
 import { ChatbarInitialState, initialState } from './Chatbar.state';
 
 import { v4 as uuidv4 } from 'uuid';
+import { jwtDecode } from "jwt-decode";
 
 export const Chatbar = () => {
   const { t } = useTranslation('sidebar');
@@ -48,6 +50,20 @@ export const Chatbar = () => {
     dispatch: chatDispatch,
   } = chatBarContextValue;
 
+  // 会話を_tsに基づいて並び替える
+  const sortedConversations = useMemo(() => {
+    console.log('Sorting conversations:', conversations); // デバッグ用
+    return [...conversations].sort((a, b) => {
+      const tsA = a._ts || 0;
+      const tsB = b._ts || 0;
+      return tsA - tsB; // 降順（新しい順）に並び替え
+    });
+  }, [conversations]);
+
+  useEffect(() => {
+    console.log('Sorted conversations:', sortedConversations); // デバッグ用
+  }, [sortedConversations]);
+  // トークンカウントの更新
   const handleApiKeyChange = useCallback(
     (apiKey: string) => {
       homeDispatch({ field: 'apiKey', value: apiKey });
@@ -213,57 +229,57 @@ export const Chatbar = () => {
     }
   };
 
-  useEffect(() => {
-    const visibleConversations = conversations.filter(c => c.display !== false);
-    if (searchTerm) {
-      chatDispatch({
-        field: 'filteredConversations',
-        value: visibleConversations.filter((conversation) => {
-          const searchable =
-            conversation.name.toLocaleLowerCase() +
-            ' ' +
-            conversation.messages.map((message) => message.content).join(' ');
-          return searchable.toLowerCase().includes(searchTerm.toLowerCase());
-        }),
-      });
-    } else {
-      chatDispatch({
-        field: 'filteredConversations',
-        value: visibleConversations,
-      });
-    }
-  }, [searchTerm, conversations]);
+useEffect(() => {
+  const visibleConversations = sortedConversations.filter(c => c.display !== false);
+  if (searchTerm) {
+    chatDispatch({
+      field: 'filteredConversations',
+      value: visibleConversations.filter((conversation) => {
+        const searchable =
+          conversation.name.toLocaleLowerCase() +
+          ' ' +
+          conversation.messages.map((message) => message.content).join(' ');
+        return searchable.toLowerCase().includes(searchTerm.toLowerCase());
+      }),
+    });
+  } else {
+    chatDispatch({
+      field: 'filteredConversations',
+      value: visibleConversations,
+    });
+  }
+}, [searchTerm, sortedConversations]); // conversationsをsortedConversationsに変更
 
-  return (
-    <ChatbarContext.Provider
-      value={{
-        ...chatBarContextValue,
-        handleDeleteConversation,
-        handleClearConversations,
-        handleImportConversations,
-        handleExportData,
-        handlePluginKeyChange,
-        handleClearPluginKey,
-        handleApiKeyChange,
-      }}
-    >
-      <Sidebar<Conversation>
-        side={'left'}
-        isOpen={showChatbar}
-        addItemButtonTitle={t('New chat')}
-        itemComponent={<Conversations conversations={filteredConversations} />}
-        folderComponent={<ChatFolders searchTerm={searchTerm} />}
-        items={filteredConversations}
-        searchTerm={searchTerm}
-        handleSearchTerm={(searchTerm: string) =>
-          chatDispatch({ field: 'searchTerm', value: searchTerm })
-        }
-        toggleOpen={handleToggleChatbar}
-        handleCreateItem={handleNewConversation}
-        handleCreateFolder={() => handleCreateFolder(t('New folder'), 'chat')}
-        handleDrop={handleDrop}
-        footerComponent={<ChatbarSettings />}
-      />
-    </ChatbarContext.Provider>
+return (
+  <ChatbarContext.Provider
+    value={{
+      ...chatBarContextValue,
+      handleDeleteConversation,
+      handleClearConversations,
+      handleImportConversations,
+      handleExportData,
+      handlePluginKeyChange,
+      handleClearPluginKey,
+      handleApiKeyChange,
+    }}
+  >
+    <Sidebar<Conversation>
+      side={'left'}
+      isOpen={showChatbar}
+      addItemButtonTitle={t('New chat')}
+      itemComponent={<Conversations conversations={filteredConversations} />}
+      folderComponent={<ChatFolders searchTerm={searchTerm} />}
+      items={filteredConversations}
+      searchTerm={searchTerm}
+      handleSearchTerm={(searchTerm: string) =>
+        chatDispatch({ field: 'searchTerm', value: searchTerm })
+      }
+      toggleOpen={handleToggleChatbar}
+      handleCreateItem={handleNewConversation}
+      handleCreateFolder={() => handleCreateFolder(t('New folder'), 'chat')}
+      handleDrop={handleDrop}
+      footerComponent={<ChatbarSettings />}
+    />
+  </ChatbarContext.Provider>
   );
 };

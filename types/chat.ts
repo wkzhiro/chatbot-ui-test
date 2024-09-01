@@ -43,4 +43,5 @@ export interface Conversation {
   oid?: string | null;
   display: boolean | null;
   tokencount?: string | null;
+  _ts?: number | null;
 }
