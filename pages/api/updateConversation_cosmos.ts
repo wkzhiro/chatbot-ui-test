@@ -1,20 +1,22 @@
-import { updateItemInCosmosDB } from './cosmos'; // インポートを追加
-
+import { updateItemInCosmosDB } from './cosmos';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ message: 'Method not allowed' });
+  }
+
   try {
-    // req.body を直接使用する
     const data = req.body;
     
-    // ここでデータベースに保存する処理などを行う
-    const savedItem = await updateItemInCosmosDB(data.id,data);
-    // localStorage.setItem('selectedConversation', JSON.stringify(savedItem));
-    // console.log("savedItem",savedItem)
+    if (!data.id) {
+      return res.status(400).json({ message: 'Conversation ID is required' });
+    }
+
+    const savedItem = await updateItemInCosmosDB(data.id, data);
     
     // 保存したデータをクライアントに返す
-    res.status(200).json(data);
-    // res.status(200).json(savedItem);
+    res.status(200).json(savedItem);
 
   } catch (error) {
     console.error("データ保存時のエラー:", error);

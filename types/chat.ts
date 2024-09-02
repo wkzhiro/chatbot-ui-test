@@ -41,5 +41,6 @@ export interface Conversation {
   temperature: number;
   folderId: string | null;
   oid?: string | null;
+  display: boolean | null;
   tokencount?: string | null;
 }

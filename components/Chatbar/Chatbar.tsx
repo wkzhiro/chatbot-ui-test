@@ -4,6 +4,8 @@ import { useTranslation } from 'next-i18next';
 
 import { useCreateReducer } from '@/hooks/useCreateReducer';
 
+import { updateItemInCosmosDB } from '@/pages/api/cosmos'; // このインポートを追加
+
 import { DEFAULT_SYSTEM_PROMPT, DEFAULT_TEMPERATURE } from '@/utils/app/const';
 import { saveConversation, saveConversations } from '@/utils/app/conversation';
 import { saveFolders } from '@/utils/app/folders';
@@ -137,22 +139,46 @@ export const Chatbar = () => {
     saveFolders(updatedFolders);
   };
 
-  const handleDeleteConversation = (conversation: Conversation) => {
-    const updatedConversations = conversations.filter(
-      (c) => c.id !== conversation.id,
-    );
 
+  const handleDeleteConversation = async (conversation: Conversation) => {
+    const updatedConversations = conversations.map((c) => {
+      if (c.id === conversation.id) {
+        return { ...c, display: false };
+      }
+      return c;
+    });
+  
     homeDispatch({ field: 'conversations', value: updatedConversations });
     chatDispatch({ field: 'searchTerm', value: '' });
     saveConversations(updatedConversations);
-
-    if (updatedConversations.length > 0) {
-      homeDispatch({
-        field: 'selectedConversation',
-        value: updatedConversations[updatedConversations.length - 1],
+  
+    // APIを介してCosmosDBを更新
+    try {
+      const response = await fetch('/api/updateConversation_cosmos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ ...conversation, display: false }),
       });
-
-      saveConversation(updatedConversations[updatedConversations.length - 1]);
+  
+      if (!response.ok) {
+        throw new Error('Failed to update conversation in Cosmos DB');
+      }
+    } catch (error) {
+      console.error('Failed to update conversation in Cosmos DB:', error);
+      // エラーハンドリングをここに追加（例：ユーザーに通知するなど）
+    }
+  
+    if (updatedConversations.filter(c => c.display !== false).length > 0) {
+      const lastVisibleConversation = updatedConversations.filter(c => c.display !== false).pop();
+      if (lastVisibleConversation) {
+        homeDispatch({
+          field: 'selectedConversation',
+          value: lastVisibleConversation,
+        });
+        saveConversation(lastVisibleConversation);
+      }
     } else {
       defaultModelId &&
         homeDispatch({
@@ -165,9 +191,10 @@ export const Chatbar = () => {
             prompt: DEFAULT_SYSTEM_PROMPT,
             temperature: DEFAULT_TEMPERATURE,
             folderId: null,
+            display: true,
           },
         });
-
+  
       localStorage.removeItem('selectedConversation');
     }
   };
@@ -187,10 +214,11 @@ export const Chatbar = () => {
   };
 
   useEffect(() => {
+    const visibleConversations = conversations.filter(c => c.display !== false);
     if (searchTerm) {
       chatDispatch({
         field: 'filteredConversations',
-        value: conversations.filter((conversation) => {
+        value: visibleConversations.filter((conversation) => {
           const searchable =
             conversation.name.toLocaleLowerCase() +
             ' ' +
@@ -201,7 +229,7 @@ export const Chatbar = () => {
     } else {
       chatDispatch({
         field: 'filteredConversations',
-        value: conversations,
+        value: visibleConversations,
       });
     }
   }, [searchTerm, conversations]);

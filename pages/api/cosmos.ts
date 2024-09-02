@@ -1,6 +1,7 @@
 const { CosmosClient } = require("@azure/cosmos");
 
 const endpoint = process.env.COSMOS_DB_ENDPOINT;
+console.log("endpoint",endpoint)
 const key = process.env.COSMOS_DB_KEY;
 const client = new CosmosClient({ endpoint, key });
 const databaseId = process.env.COSMOS_DB_ID;
@@ -46,7 +47,7 @@ export const readAllItemsFromCosmosDB = async (oid: string | null) => {
     const container = client.database(databaseId).container(containerId);
     try {
         // oidのアイテムを取得するクエリ
-        const query = `SELECT * FROM c WHERE c.oid = '${oid}'`;
+        const query = `SELECT * FROM c WHERE c.oid = '${oid}' AND c.display = true`;
 
         const { resources: items } = await container.items.query(query).fetchAll();
         if (items.length > 0) {
@@ -84,6 +85,7 @@ export const updateItemInCosmosDB = async (uuid: string, updatedData: any) => {
         // console.log("updated",updatedItem)
         // console.log(`Item updated:\n${JSON.stringify(updatedItem, null, 2)}`);
 
+        console.log("updatedItem",updatedItem)
         return updatedItem;
     } catch (error) {
         const anyError = error as any;
