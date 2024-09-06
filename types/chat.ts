@@ -31,7 +31,7 @@ export interface RagBody {
   field:string[];
 }
 
-// tokencountを追加
+// groupsを追加
 export interface Conversation {
   id: string;
   name: string;
@@ -43,4 +43,15 @@ export interface Conversation {
   oid?: string | null;
   display: boolean | null;
   tokencount?: string | null;
+  groups?: string[] | null;
+  create_date?: string | null;
+}
+
+// JWTトークンのデコード結果の型を定義
+export interface DecodedToken {
+  oid: string;
+  sub: string;
+  preferred_username: string;
+  groups?: string[]; 
+  // 他のフィールドを必要に応じて追加
 }

@@ -12,6 +12,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (!data.id) {
       return res.status(400).json({ message: 'Conversation ID is required' });
     }
+    if (!data.create_date) {
+      data.create_date = new Date().toISOString();  // 現在の日時を ISO 形式で追加
+      console.log("data.create_date2",data.create_date)
+    }
 
     const savedItem = await updateItemInCosmosDB(data.id, data);
     

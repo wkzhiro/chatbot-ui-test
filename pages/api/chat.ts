@@ -1,7 +1,7 @@
 import { DEFAULT_SYSTEM_PROMPT, DEFAULT_TEMPERATURE } from '@/utils/app/const';
 import { OpenAIError, OpenAIStream } from '@/utils/server';
 
-import { ChatBody, Message } from '@/types/chat';
+import { ChatBody, Message, DecodedToken } from '@/types/chat';
 // @ts-expect-error
 import wasm from '../../node_modules/@dqbd/tiktoken/lite/tiktoken_bg.wasm?module';
 
@@ -11,15 +11,6 @@ import { Tiktoken, init } from '@dqbd/tiktoken/lite/init';
 export const config = {
   runtime: 'edge',
 };
-
-// JWTトークンのデコード結果の型を定義
-interface DecodedToken {
-    oid: string;
-    sub: string;
-    preferred_username: string;
-    // 他のフィールドを必要に応じて追加
-  }
-
 
 const handler = async (req: Request): Promise<Response> => {
   try {

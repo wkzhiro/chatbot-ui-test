@@ -1,15 +1,8 @@
 import { readAllItemsFromCosmosDB } from './cosmos'; // インポートを追加
 import { jwtDecode } from "jwt-decode";
-
+import { DecodedToken } from '@/types/chat';
 import type { NextApiRequest, NextApiResponse } from 'next';
 
-// JWTトークンのデコード結果の型を定義
-interface DecodedToken {
-  oid: string;
-  sub: string;
-  preferred_username: string;
-  // 他のフィールドを必要に応じて追加
-}
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // jwtトークンを取得
