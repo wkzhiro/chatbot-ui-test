@@ -12,11 +12,15 @@ const RagToggleSwitch: React.FC<Props> = ({ label}) => {
         isRagChecked, 
         ragOptionList =[],
         selectedOptions =[],
-        jwt
+        jwt,
+        selectedConversation,
     },
     dispatch,
   } = useContext(HomeContext);
 
+
+
+  
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
 

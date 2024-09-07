@@ -77,7 +77,8 @@ const Home = ({
       temperature,
       jwt,  // JWTの状態を取得
       oid,
-      ragOptionList
+      ragOptionList,
+      selectedOptions, // ここに追加
     },
     dispatch,
   } = contextValue;
@@ -259,6 +260,29 @@ const Home = ({
       value: conversation,
     });
 
+  // selectedConversation の ragCategory で selectedOptions を上書き
+  if (conversation.ragCategory) {
+    dispatch({
+      field: 'selectedOptions',
+      value: conversation.ragCategory,
+    });
+    // ragCategory が空でない場合、isRagChecked を true に設定
+    dispatch({
+      field: 'isRagChecked',
+      value: conversation.ragCategory.length > 0,
+    });
+  } else {
+    // ragCategory が存在しない場合は空の配列をセット
+    dispatch({
+      field: 'selectedOptions',
+      value: [],
+    });
+    // ragCategory が存在しない場合、isRagChecked を false に設定
+    dispatch({
+      field: 'isRagChecked',
+      value: false,
+    });
+  }
     saveConversation(conversation);
   };
 
@@ -347,11 +371,14 @@ const Home = ({
       temperature: lastConversation?.temperature ?? DEFAULT_TEMPERATURE,
       folderId: null,
       display: true,
+      ragCategory: [], // 新しい会話の ragCategory を空の配列で初期化
+      create_date: new Date().toISOString(), // 新しい会話にはcreate_dateをふよ
     };
 
     const updatedConversations = [...conversations, newConversation];
 
     dispatch({ field: 'selectedConversation', value: newConversation });
+    dispatch({ field: 'selectedOptions', value: [] }); // selectedOptions もリセット
     dispatch({ field: 'conversations', value: updatedConversations });
 
     saveConversation(newConversation);

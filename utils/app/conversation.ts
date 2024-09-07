@@ -81,8 +81,6 @@ export const saveConversations = async(conversations: Conversation[]) => {
 
   // JWTトークンを紐づけてconvetsationHistoryに保存
   localStorage.setItem('conversationHistory', JSON.stringify(conversationsWithJwt));
-  // // console.log("conversationsWithJwt",conversationsWithJwt)
-  // localStorage.setItem('conversationHistory', JSON.stringify(conversations));
 
   // 会話を走らせたときに、update
   const selectedConversationString = localStorage.getItem('selectedConversation');
@@ -108,9 +106,6 @@ export const saveConversations = async(conversations: Conversation[]) => {
           // groups が存在しなければ追加
           if (!matchingConversation.groups) {
             matchingConversation.groups = groups || [];
-          }
-          if (!matchingConversation.create_date) {
-            matchingConversation.create_date = new Date().toISOString();  // 現在の日時を ISO 形式で追加
           }
         }
         localStorage.setItem('selectedConversation', JSON.stringify(matchingConversation));
