@@ -192,6 +192,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
             updatedConversation = {
               ...updatedConversation,
               name: customName,
+              ragCategory: selectedOptions,
             };
           }
           homeDispatch({ field: 'loading', value: false });
