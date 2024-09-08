@@ -372,7 +372,7 @@ const Home = ({
       folderId: null,
       display: true,
       ragCategory: [], // 新しい会話の ragCategory を空の配列で初期化
-      create_date: new Date().toISOString(), // 新しい会話にはcreate_dateをふよ
+      create_date: Math.floor(new Date().getTime() / 1000), // 新しい会話にはcreate_dateをふよ
     };
 
     const updatedConversations = [...conversations, newConversation];

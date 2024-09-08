@@ -46,7 +46,7 @@ export interface Conversation {
   _ts?: number | null;
   ragCategory?: string[] | null;
   groups?: string[] | null;
-  create_date?: string | null;
+  create_date?: number | null;
 }
 
 // JWTトークンのデコード結果の型を定義

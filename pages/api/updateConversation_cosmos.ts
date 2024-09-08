@@ -14,7 +14,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
     // Loadしたデータがcreate_dateを持っていなかった場合の追加
     if (!data.create_date) {
-      data.create_date = new Date().toISOString();
+      data.create_date = Math.floor(new Date().getTime() / 1000);
       console.log("data.create_date2",data.create_date)
     }
 
