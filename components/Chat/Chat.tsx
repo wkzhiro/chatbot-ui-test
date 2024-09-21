@@ -523,7 +523,7 @@ export const Chat = memo(({ stopConversationRef }: Props) => {
                         <Spinner size="16px" className="mx-auto" />
                       </div>
                     ) : (
-                      'Chatbot UI Production test for 7th'
+                      'トライアル Tech0内chatGPT -KIKO(仮)- by chatbot ui'
                     )}
                   </div>
 
