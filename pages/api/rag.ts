@@ -1,7 +1,7 @@
 import { RAG_TOKEN_LIMIT,RAG_END_POINT} from '@/utils/app/const';
 import { OpenAIError } from '@/utils/server';
 
-import { RagBody, Message } from '@/types/chat';
+import { RagBody, Message, DecodedToken } from '@/types/chat';
 // @ts-expect-error
 import wasm from '../../node_modules/@dqbd/tiktoken/lite/tiktoken_bg.wasm?module';
 
@@ -11,14 +11,6 @@ import { Tiktoken, init } from '@dqbd/tiktoken/lite/init';
 export const config = {
     runtime: 'edge',
 };
-
-// JWTトークンのデコード結果の型を定義
-interface DecodedToken {
-    oid: string;
-    sub: string;
-    preferred_username: string;
-    // 他のフィールドを必要に応じて追加
-}
 
 const handler = async (req: Request): Promise<Response> => {
     try {

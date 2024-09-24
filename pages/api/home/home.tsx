@@ -41,6 +41,7 @@ import Promptbar from '@/components/Promptbar';
 import HomeContext from './home.context';
 import { HomeInitialState, initialState } from './home.state';
 import { jwtDecode } from "jwt-decode";
+import { DecodedToken } from '@/types/chat';
 
 import { v4 as uuidv4 } from 'uuid';
 import { isTokenExpired, refreshJWTbytoken } from '../auth/token/tokencheck';
@@ -49,14 +50,6 @@ interface Props {
   serverSideApiKeyIsSet: boolean;
   serverSidePluginKeysSet: boolean;
   defaultModelId: OpenAIModelID;
-}
-
-// JWTトークンのデコード結果の型を定義
-interface DecodedToken {
-  oid: string;
-  sub: string;
-  preferred_username: string;
-  // 他のフィールドを必要に応じて追加
 }
 
 const Home = ({
@@ -379,6 +372,7 @@ const Home = ({
       folderId: null,
       display: true,
       ragCategory: [], // 新しい会話の ragCategory を空の配列で初期化
+      create_date: Math.floor(new Date().getTime() / 1000), // 新しい会話にはcreate_dateをふよ
     };
 
     const updatedConversations = [...conversations, newConversation];

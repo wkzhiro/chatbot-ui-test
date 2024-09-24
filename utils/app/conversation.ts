@@ -1,13 +1,5 @@
-import { Conversation } from '@/types/chat';
+import { Conversation, DecodedToken } from '@/types/chat';
 import { jwtDecode } from "jwt-decode";
-
-// JWTトークンのデコード結果の型を定義
-interface DecodedToken {
-  oid: string;
-  sub: string;
-  preferred_username: string;
-  // 他のフィールドを必要に応じて追加
-}
 
 export const updateConversation = (
   updatedConversation: Conversation,
@@ -43,6 +35,7 @@ export const saveConversation = (conversation: Conversation) => {
 // すべての会話データをローカルストレージに保存する関数
 export const saveConversations = async(conversations: Conversation[]) => {
   let oid: string | null = null;
+  let groups: string[] | null = null;
 
   // jwtトークン取得 //
   try {
@@ -53,32 +46,46 @@ export const saveConversations = async(conversations: Conversation[]) => {
     }
     // JWTトークンをデコード
     const decodedToken = jwtDecode<DecodedToken>(key);
-    // // console.log("log", decodedToken);
     // `oid`フィールドを取得
     oid = decodedToken.oid;
+
+    // `groups`フィールドを取得
+    if (decodedToken.groups) {
+      groups = decodedToken.groups;
+      console.log("Groups:", groups);
+    } else {
+      console.log("Groups not found in token.");
+    }
     // console.log("OID:", oid);
     } catch (error) {
         console.error("Error decoding JWT token:", error);
     }
 
-  // oidを各Conversationに追加（存在しない場合のみ）
+  // oidを各Conversationに追加（存在しない場合のみ）、groupsを常に追加し存在しない場合は空の配列を設定
+  // const conversationsWithJwt = conversations.map(conversation => {
+  //   if (!conversation.oid) {
+  //     return {
+  //       ...conversation,
+  //       oid: oid,
+  //     };
+  //   }
+  //   return conversation;
+  // });
   const conversationsWithJwt = conversations.map(conversation => {
-    if (!conversation.oid) {
-      return {
-        ...conversation,
-        oid: oid,
-      };
-    }
-    return conversation;
+    return {
+      ...conversation,
+      oid: conversation.oid || oid,  // `oid` が存在しない場合のみ `oid` を設定
+      groups: groups || [],          // `groups` を常に追加し、存在しない場合は空の配列を設定
+    };
   });
 
   // JWTトークンを紐づけてconvetsationHistoryに保存
   localStorage.setItem('conversationHistory', JSON.stringify(conversationsWithJwt));
-  // // console.log("conversationsWithJwt",conversationsWithJwt)
-  // localStorage.setItem('conversationHistory', JSON.stringify(conversations));
 
   // 会話を走らせたときに、update
   const selectedConversationString = localStorage.getItem('selectedConversation');
+  console.log("selectedConversationString",selectedConversationString)
+
   if (selectedConversationString) {
     // 文字列をオブジェクトにパース
     const selectedConversation = JSON.parse(selectedConversationString);
@@ -96,16 +103,17 @@ export const saveConversations = async(conversations: Conversation[]) => {
           if (!matchingConversation.oid) {
             matchingConversation.oid = oid;
           }
+          // groups が存在しなければ追加
+          if (!matchingConversation.groups) {
+            matchingConversation.groups = groups || [];
+          }
         }
         localStorage.setItem('selectedConversation', JSON.stringify(matchingConversation));
 
-        // 結果のログ出力
-        // console.log("matchingConversation",matchingConversation);
-        // update
         let body;
         const controller = new AbortController();
         body = JSON.stringify(matchingConversation);
-        // console.log("body",body)
+        console.log("matchingConversation",matchingConversation)
         const response = await fetch("/api/updateConversation_cosmos", {
           method: 'POST',
           headers: {
