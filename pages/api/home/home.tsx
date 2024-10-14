@@ -99,13 +99,14 @@ const Home = ({
     let oid: string | null = null;
     try {
       const key = localStorage.getItem('jwt');
-
+      console.log("fetchData_1:jwt=",key,",oid=",oid);
       // JWTがあるかどうかで判断する
       if (key !== undefined && key !== null) {
         // JWTトークンをデコード
         const decodedToken = jwtDecode<DecodedToken>(key);
         // `oid`フィールドを取得
         oid = decodedToken.oid;
+        console.log("fetchData_2:jwt=",jwt,",oid=",oid);
         const response = await fetch('/api/readallconversation_cosmos', {
           method: 'POST',
           headers: {
@@ -159,11 +160,15 @@ const Home = ({
 
     const handleJWTVerification = async () => {
       // jwtが期限切れの有無に関わらず、ローカルストレージにjwtがある場合、jwtを更新
+      console.log("handleJWTVerification:jwt=",storedJwt);
       if (storedJwt) {
         const storedoid = localStorage.getItem('oid');
+        console.log("handleJWTVerification_0:storedoid=",storedoid);
         if (storedoid) {
           const newJwt = await refreshJWTbytoken(storedoid);
+          console.log("handleJWTVerification_1:jwt=",jwt,",oid=",oid);
           setJWT(newJwt);
+          console.log("handleJWTVerification_2:jwt=",newJwt,",oid=",oid);
         } else {
           console.error('OID is missing in local storage.');
         }
@@ -174,7 +179,9 @@ const Home = ({
           const { data } = await axios.post('/api/auth/verify', { code });
           const newJwt = data.result.accessToken;
           const oid = data.oid;
+          console.log("handleJWTVerification_3:jwt=",jwt,",oid=",oid);
           setJWT(newJwt);
+          console.log("handleJWTVerification_4:jwt=",newJwt,",oid=",oid);
           console.log("home_oid",oid)
           if (oid) {
             setRT(oid);
@@ -221,7 +228,9 @@ const Home = ({
       if (storedoid) {
         console.log("put_start");
         token = await refreshJWTbytoken(storedoid);
+        console.log("fetchModels_1:jwt=",jwt,",oid=",oid);
         setJWT(token);
+        console.log("fetchModels_2:jwt=",token,",oid=",oid);
       }
     }
   
