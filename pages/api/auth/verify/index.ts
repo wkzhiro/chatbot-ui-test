@@ -16,6 +16,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (req.method === 'POST') {    
         try {
+            console.log("POST")
             const json = req.body;
             const code = json.code as string;
             if (!code) {
