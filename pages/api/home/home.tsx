@@ -97,6 +97,7 @@ const Home = ({
 
   const fetchData = async () => {
     let contextoid = oid
+    console.log("fetch_contextoid_original",oid)
     try {
       const key = localStorage.getItem('jwt');
       console.log("fetchData_1:jwt=",key,",oid=",contextoid);
