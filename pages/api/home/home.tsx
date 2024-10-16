@@ -96,23 +96,23 @@ const Home = ({
   };
 
   const fetchData = async () => {
-    let oid: string | null = null;
+    let contextoid = oid
     try {
       const key = localStorage.getItem('jwt');
-      console.log("fetchData_1:jwt=",key,",oid=",oid);
+      console.log("fetchData_1:jwt=",key,",oid=",contextoid);
       // JWTがあるかどうかで判断する
       if (key !== undefined && key !== null) {
         // JWTトークンをデコード
         const decodedToken = jwtDecode<DecodedToken>(key);
         // `oid`フィールドを取得
-        oid = decodedToken.oid;
-        console.log("fetchData_2:jwt=",jwt,",oid=",oid);
+        contextoid = decodedToken.oid;
+        console.log("fetchData_2:jwt=",jwt,",oid=",contextoid);
         const response = await fetch('/api/readallconversation_cosmos', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ oid: oid }),
+          body: JSON.stringify({ oid: contextoid }),
         });
       
         if (!response.ok) {
@@ -164,7 +164,7 @@ const Home = ({
 
   useEffect(() => {
     const storedJwt = localStorage.getItem('jwt');
-    console.log("useeffect_storedJwt:", storedJwt)
+    console.log("useeffect_storedJwt:", storedJwt, "useeffect_oid:",oid)
 
     const handleJWTVerification = async () => {
       // jwtが期限切れの有無に関わらず、ローカルストレージにjwtがある場合、jwtを更新
@@ -175,7 +175,7 @@ const Home = ({
         if (storedoid) {
           console.log("effect_storedid")
           const newJwt = await refreshJWTbytoken(storedoid);
-          console.log("handleJWTVerification_1:jwt=",jwt,",oid=",oid);
+          console.log("handleJWTVerification_1:jwt=",jwt,",oid=",oid, );
           setJWT(newJwt);
           console.log("handleJWTVerification_2:jwt=",newJwt,",oid=",oid);
         } else {
