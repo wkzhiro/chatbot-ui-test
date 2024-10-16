@@ -458,7 +458,7 @@ const Home = ({
   // ON LOAD --------------------------------------------
 
   useEffect(() => {
-    (async() =>{
+    // (async() =>{
     const settings = getSettings();
     if (settings.theme) {
       dispatch({
@@ -513,7 +513,7 @@ const Home = ({
 
     // fetchData関数の呼び出し
     console.log("reload_fetchData")
-    await fetchData();
+    fetchData();
 
     // localstorageから「選択したActive会話」の情報を取得
     const selectedConversation = localStorage.getItem('selectedConversation');
@@ -545,7 +545,8 @@ const Home = ({
         },
       });
     }
-  })}, [
+  // })
+  }, [
     defaultModelId,
     dispatch,
     serverSideApiKeyIsSet,
