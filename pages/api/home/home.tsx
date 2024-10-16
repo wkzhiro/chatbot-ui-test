@@ -154,6 +154,11 @@ const Home = ({
   // jwtの認証のためのコード
   const params = useSearchParams();
   const [code, _] = useState(params.get("code"));
+  if (code === null || code === undefined) {
+    console.log("codeはnullかundefinedだよ");
+  } else {
+    console.log("JWTの認証コード:", code);
+  }
 
   useEffect(() => {
     const storedJwt = localStorage.getItem('jwt');
