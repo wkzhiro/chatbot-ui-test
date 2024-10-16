@@ -181,8 +181,8 @@ const Home = ({
           const newJwt = await refreshJWTbytoken(storedoid);
           console.log("handleJWTVerification_1:jwt=",jwt,",oid=",oid, );
           // setJWT(newJwt);
-          dispatch({ field: 'jwt', value: jwt });
-          localStorage.setItem('jwt', jwt);
+          dispatch({ field: 'jwt', value: newJwt });
+          localStorage.setItem('jwt', newJwt);
           console.log("handleJWTVerification_2:jwt=",newJwt,",oid=",oid);
         } else {
           console.error('OID is missing in local storage.');
@@ -196,8 +196,8 @@ const Home = ({
           const oid = data.oid;
           console.log("handleJWTVerification_3:jwt=",jwt,",oid=",oid);
           // setJWT(newJwt);
-          dispatch({ field: 'jwt', value: jwt });
-          localStorage.setItem('jwt', jwt);
+          dispatch({ field: 'jwt', value: newJwt });
+          localStorage.setItem('jwt', newJwt);
           console.log("handleJWTVerification_4:jwt=",newJwt,",oid=",oid);
           console.log("home_oid",oid)
           if (oid) {
