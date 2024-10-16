@@ -100,7 +100,7 @@ const Home = ({
     console.log("fetch_contextoid_original",oid)
     try {
       const key = localStorage.getItem('jwt');
-      console.log("fetchData_1:jwt=",key,",oid=",contextoid);
+      console.log("fetchData_1:jwt(key)=",key,",oid=",contextoid);
       // JWTがあるかどうかで判断する
       if (key !== undefined && key !== null) {
         // JWTトークンをデコード
@@ -133,12 +133,15 @@ const Home = ({
   };
 
   const setJWT = (jwt: string) => {
-    console.log("setJWT",jwt)
-    dispatch({ field: 'jwt', value: jwt });
-    localStorage.setItem('jwt', jwt);
+    console.log("setJWT")
+    try{
+      console.log("setJWT",jwt)
+      dispatch({ field: 'jwt', value: jwt });
+      localStorage.setItem('jwt', jwt);
+    }catch(error){
+      console.log("setJWT error",error)
+    }
   };
-
-    // );
 
   const setRT = (oid: string) => {
     const crypto = require('crypto');
@@ -449,6 +452,7 @@ const Home = ({
   // ON LOAD --------------------------------------------
 
   useEffect(() => {
+    (async() =>{
     const settings = getSettings();
     if (settings.theme) {
       dispatch({
@@ -503,7 +507,7 @@ const Home = ({
 
     // fetchData関数の呼び出し
     console.log("reload_fetchData")
-    fetchData();
+    await fetchData();
 
     // localstorageから「選択したActive会話」の情報を取得
     const selectedConversation = localStorage.getItem('selectedConversation');
@@ -535,7 +539,7 @@ const Home = ({
         },
       });
     }
-  }, [
+  })}, [
     defaultModelId,
     dispatch,
     serverSideApiKeyIsSet,
