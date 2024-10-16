@@ -132,6 +132,7 @@ const Home = ({
   };
 
   const setJWT = (jwt: string) => {
+    console.log("setJWT",jwt)
     dispatch({ field: 'jwt', value: jwt });
     localStorage.setItem('jwt', jwt);
   };
@@ -147,6 +148,7 @@ const Home = ({
     const cipher = crypto.createCipher(algorithm, password);
     const crypted = cipher.update(oid, 'utf-8', 'hex'); 
     const crypted_text = crypted + cipher.final('hex');
+    console.log("setRT_oud",crypted_text)
     dispatch({ field: 'oid', value: crypted_text });
     localStorage.setItem('oid', crypted_text);
   };
@@ -154,6 +156,11 @@ const Home = ({
   // jwtの認証のためのコード
   const params = useSearchParams();
   const [code, _] = useState(params.get("code"));
+  if (code === null || code === undefined) {
+    console.log("codeはnullかundefinedだよ");
+  } else {
+    console.log("JWTの認証コード:", code);
+  }
 
   useEffect(() => {
     const storedJwt = localStorage.getItem('jwt');
