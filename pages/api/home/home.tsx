@@ -157,6 +157,7 @@ const Home = ({
 
   useEffect(() => {
     const storedJwt = localStorage.getItem('jwt');
+    console.log("useeffect_storedJwt:", storedJwt)
 
     const handleJWTVerification = async () => {
       // jwtが期限切れの有無に関わらず、ローカルストレージにjwtがある場合、jwtを更新
@@ -165,6 +166,7 @@ const Home = ({
         const storedoid = localStorage.getItem('oid');
         console.log("handleJWTVerification_0:storedoid=",storedoid);
         if (storedoid) {
+          console.log("effect_storedid")
           const newJwt = await refreshJWTbytoken(storedoid);
           console.log("handleJWTVerification_1:jwt=",jwt,",oid=",oid);
           setJWT(newJwt);
@@ -492,6 +494,7 @@ const Home = ({
     }
 
     // fetchData関数の呼び出し
+    console.log("reload_fetchData")
     fetchData();
 
     // localstorageから「選択したActive会話」の情報を取得
