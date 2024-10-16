@@ -239,16 +239,16 @@ const Home = ({
   const fetchModels = async (signal?: AbortSignal) => {
     let token = jwt;
     console.log("fetchmodel_start");
-    if (jwt && isTokenExpired(jwt)) {
+    if (token && isTokenExpired(token)) {
       console.log("TokenExpired");
       const storedoid = localStorage.getItem('oid');
       if (storedoid) {
         console.log("put_start");
         token = await refreshJWTbytoken(storedoid);
-        console.log("fetchModels_1:jwt=",jwt,",oid=",oid);
+        console.log("fetchModels_1:jwt=",token,",oid=",oid);
         // setJWT(token);
-        dispatch({ field: 'jwt', value: jwt });
-        localStorage.setItem('jwt', jwt);
+        dispatch({ field: 'jwt', value: token });
+        localStorage.setItem('jwt', token);
         console.log("fetchModels_2:jwt=",token,",oid=",oid);
       }
     }
