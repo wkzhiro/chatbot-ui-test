@@ -136,7 +136,7 @@ const Home = ({
     console.log("setJWT")
     try{
       console.log("setJWT",jwt)
-      dispatch({ field: 'jwt', value: jwt });
+      //dispatch({ field: 'jwt', value: jwt });
       localStorage.setItem('jwt', jwt);
     }catch(error){
       console.log("setJWT error",error)
