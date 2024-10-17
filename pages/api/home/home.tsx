@@ -216,7 +216,7 @@ const Home = ({
   }, [code]);
 
   // RAGのタグを取得する関数
-  const fetchFacets = async () => {
+  const fetchFacets = async (jwt:string) => {
     try {
         const response = await fetch('/api/facet',
           {
@@ -225,7 +225,7 @@ const Home = ({
               'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-              key: jwt 
+              key:  jwt
           })
         }
         );
@@ -255,7 +255,7 @@ const Home = ({
   
     if (!token) return null;
     // RAGのタグを取得
-    fetchFacets();
+    fetchFacets(token);
   
     return getModels(
       {
