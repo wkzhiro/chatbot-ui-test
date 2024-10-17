@@ -186,7 +186,7 @@ const Home = ({
         dispatch({ field: 'jwt', value: newJwt });
         localStorage.setItem('jwt', newJwt);
         console.log("handleJWTVerification_4:jwt=",newJwt,",oid=",newoid);
-        console.log("home_oid",oid)
+        console.log("home_oid",newoid)
         if (newoid) {
           setRT(newoid);
         } else {
