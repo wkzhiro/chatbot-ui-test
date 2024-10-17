@@ -16,7 +16,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     if (req.method === 'POST') {    
         try {
-            console.log("POST")
             const json = req.body;
             const code = json.code as string;
             if (!code) {
@@ -62,15 +61,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } else if (req.method === 'PUT') {
         try {
             const json = req.body;
-            // const account = json.account as AccountInfo;
             const cipher_oid = json.oid as string
-            // console.log("verify/account : ",account);
-            // if (!account) {
-            //     res.status(400).json({ error: 'account is not found' });
-            //     return;
-            // }
-            // const result = await msalService.acquireTokenSilent(account);
-            
+
             const crypto = require('crypto');
             console.log("cipher_oid", cipher_oid)
             const password = process.env.NEXT_PUBLIC_SALT as string;
@@ -88,10 +80,10 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             res.status(200).json(result);
         } catch (error) {
             try {
-                console.log("Silent token acquisition failed, falling back to interaction", error);
+                console.log("Silent  acquisition failed, falling back to interaction", error);
             } catch (error) {
-                console.error("Unexpected error acquiring token silently:", error);
-                res.status(500).json({ error: 'Failed to acquire token silently' });
+                console.error("Unexpected error acquiring  silently:", error);
+                res.status(500).json({ error: 'Failed to acquire  silently' });
             }
         }
     } else {

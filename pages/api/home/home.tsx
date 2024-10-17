@@ -97,7 +97,7 @@ const Home = ({
 
   const fetchData = async () => {
     let contextoid = oid
-    console.log("fetch_contextoid_original",oid)
+    console.log("fetch_contextoid_original",contextoid)
     try {
       const key = localStorage.getItem('jwt');
       console.log("fetchData_1:jwt(key)=",key,",oid=",contextoid);
@@ -180,15 +180,15 @@ const Home = ({
       try {
         const { data } = await axios.post('/api/auth/verify', { code });
         const newJwt = data.result.accessToken;
-        const oid = data.oid;
+        const newoid = data.oid;
         console.log("handleJWTVerification_3:jwt=",jwt,",oid=",oid);
         // setJWT(newJwt);
         dispatch({ field: 'jwt', value: newJwt });
         localStorage.setItem('jwt', newJwt);
-        console.log("handleJWTVerification_4:jwt=",newJwt,",oid=",oid);
+        console.log("handleJWTVerification_4:jwt=",newJwt,",oid=",newoid);
         console.log("home_oid",oid)
-        if (oid) {
-          setRT(oid);
+        if (newoid) {
+          setRT(newoid);
         } else {
           console.error('oid information is missing in the response.');
         }
@@ -208,7 +208,7 @@ const Home = ({
   }
 
   useEffect(() => {
-    const storedJwt = localStorage.getItem('jwt');
+    const storedJwt = localStorage.getItem('jwt') || '';
     console.log("useeffect_storedJwt:", storedJwt, "useeffect_oid:",oid)
     if (storedJwt !== null) {
       handleJWTVerification(storedJwt).then(()=>{
