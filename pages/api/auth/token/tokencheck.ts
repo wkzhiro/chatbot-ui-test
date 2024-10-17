@@ -18,6 +18,7 @@ export  const refreshJWTbytoken = async (oid: string) => {
   const { data }: { data: AuthenticationResult } = await axios.put(url, {
     oid:oid
   });
+  console.log("refresh_oid_received", oid)
   const newToken = data.accessToken;
   return newToken;
 };
