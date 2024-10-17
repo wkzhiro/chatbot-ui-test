@@ -12,7 +12,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'OID is required' });
   }
 
-  console.log("Received OID:", oid);
+  console.log("readallitemfromcosmosdb_Received OID:", oid);
 
   try {
     console.log("readallitemfromcosmosdb")

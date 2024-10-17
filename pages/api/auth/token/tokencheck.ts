@@ -16,7 +16,7 @@ export  const isTokenExpired = (token: string) => {
 export  const refreshJWTbytoken = async (oid: string) => {
   const url = "/api/auth/verify";
   const { data }: { data: AuthenticationResult } = await axios.put(url, {
-    oid
+    oid:oid
   });
   const newToken = data.accessToken;
   return newToken;
