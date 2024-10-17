@@ -121,6 +121,7 @@ export const readrefreshtokenFromCosmosDB = async (oid: string | null) => {
 
 // tokenを保存する
 export const saveToken = async (item: any) => {
+    console.log("savetoken")
     const container = client.database(databaseId).container(ref_containerId);
     try {
         // itemが文字列の場合、オブジェクトに変換
@@ -135,6 +136,8 @@ export const saveToken = async (item: any) => {
 
 // tokenをupdateする
 export const updateToken = async (oid: string, refreshToken: string, uuid: string) => {
+    console.log("updatetoken")
+
     const container = client.database(databaseId).container(ref_containerId);
     const date = Date.now();
     const tokenData: TokenData = {
