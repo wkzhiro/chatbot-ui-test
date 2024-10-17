@@ -157,6 +157,47 @@ const Home = ({
     localStorage.setItem('oid', crypted_text);
   };
 
+  const handleJWTVerification = async (storedJwt: string) => {
+    // jwtが期限切れの有無に関わらず、ローカルストレージにjwtがある場合、jwtを更新
+    console.log("handleJWTVerification:jwt=",storedJwt);
+    if (storedJwt) {
+      const storedoid = localStorage.getItem('oid');
+      console.log("handleJWTVerification_0:storedoid=",storedoid);
+      if (storedoid) {
+        console.log("effect_storedid")
+        const newJwt = await refreshJWTbytoken(storedoid);
+        console.log("handleJWTVerification_1:jwt=",jwt,",oid=",oid, );
+        // setJWT(newJwt);
+        dispatch({ field: 'jwt', value: newJwt });
+        localStorage.setItem('jwt', newJwt);
+        console.log("handleJWTVerification_2:jwt=",newJwt,",oid=",oid);
+      } else {
+        console.error('OID is missing in local storage.');
+      }
+    // ローカルストレージにjwtがない場合、認証してjwtを発行し、jwtとoidをローカルストレージに登録
+    } else {
+      console.log("code_models")
+      try {
+        const { data } = await axios.post('/api/auth/verify', { code });
+        const newJwt = data.result.accessToken;
+        const oid = data.oid;
+        console.log("handleJWTVerification_3:jwt=",jwt,",oid=",oid);
+        // setJWT(newJwt);
+        dispatch({ field: 'jwt', value: newJwt });
+        localStorage.setItem('jwt', newJwt);
+        console.log("handleJWTVerification_4:jwt=",newJwt,",oid=",oid);
+        console.log("home_oid",oid)
+        if (oid) {
+          setRT(oid);
+        } else {
+          console.error('oid information is missing in the response.');
+        }
+      } catch (error) {
+        console.error('Error verifying access token with code:', error);
+      }
+    }
+  };
+
   // jwtの認証のためのコード
   const params = useSearchParams();
   const [code, _] = useState(params.get("code"));
@@ -169,50 +210,10 @@ const Home = ({
   useEffect(() => {
     const storedJwt = localStorage.getItem('jwt');
     console.log("useeffect_storedJwt:", storedJwt, "useeffect_oid:",oid)
-
-    const handleJWTVerification = async () => {
-      // jwtが期限切れの有無に関わらず、ローカルストレージにjwtがある場合、jwtを更新
-      console.log("handleJWTVerification:jwt=",storedJwt);
-      if (storedJwt) {
-        const storedoid = localStorage.getItem('oid');
-        console.log("handleJWTVerification_0:storedoid=",storedoid);
-        if (storedoid) {
-          console.log("effect_storedid")
-          const newJwt = await refreshJWTbytoken(storedoid);
-          console.log("handleJWTVerification_1:jwt=",jwt,",oid=",oid, );
-          // setJWT(newJwt);
-          dispatch({ field: 'jwt', value: newJwt });
-          localStorage.setItem('jwt', newJwt);
-          console.log("handleJWTVerification_2:jwt=",newJwt,",oid=",oid);
-        } else {
-          console.error('OID is missing in local storage.');
-        }
-      // ローカルストレージにjwtがない場合、認証してjwtを発行し、jwtとoidをローカルストレージに登録
-      } else {
-        console.log("code_models")
-        try {
-          const { data } = await axios.post('/api/auth/verify', { code });
-          const newJwt = data.result.accessToken;
-          const oid = data.oid;
-          console.log("handleJWTVerification_3:jwt=",jwt,",oid=",oid);
-          // setJWT(newJwt);
-          dispatch({ field: 'jwt', value: newJwt });
-          localStorage.setItem('jwt', newJwt);
-          console.log("handleJWTVerification_4:jwt=",newJwt,",oid=",oid);
-          console.log("home_oid",oid)
-          if (oid) {
-            setRT(oid);
-          } else {
-            console.error('oid information is missing in the response.');
-          }
-        } catch (error) {
-          console.error('Error verifying access token with code:', error);
-        }
-      }
-    };
-
-    handleJWTVerification().then(()=>{
-      fetchData()})
+    if (storedJwt !== null) {
+      handleJWTVerification(storedJwt).then(()=>{
+        fetchData()})
+    }
   }, [code]);
 
   // RAGのタグを取得する関数
