@@ -79,7 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const decrypted = decipher.update(cipher_oid, 'hex', 'utf-8');
             const decrypted_text = decrypted + decipher.final('utf8');
             // const decrypted_text = decipher.final('utf-8');
-            console.log(decrypted_text);
+            console.log("decrypted_text", decrypted_text);
             const refreshtoken  = await readrefreshtokenFromCosmosDB('"'+decrypted_text.toString()+'"');
             console.log("refreshtoken", refreshtoken);
             const result = await msalService.acquireTokenByRefreshToken(refreshtoken);
