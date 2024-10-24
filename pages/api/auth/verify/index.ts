@@ -77,12 +77,18 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             console.log("password_veryfy:",password);
             const decipher = crypto.createDecipher('aes-256-cbc',password );
             const decrypted = decipher.update(cipher_oid, 'hex', 'utf-8');
-            let decrypted_text = decrypted + decipher.final('utf8');
+            const decrypted_text = decrypted + decipher.final('utf8');
             // const decrypted_text = decipher.final('utf-8');
             console.log(decrypted_text);
-            decrypted_text = "a4af6a32-b35b-424f-8ef2-1ca7fd1053a1"
+            const decrypted_text_compared = "a4af6a32-b35b-424f-8ef2-1ca7fd1053a1"
+            // 一致しているか確認
+            if (decrypted_text === decrypted_text_compared) {
+                console.log("The texts are identical.");
+            } else {
+                console.log("The texts are different.");
+            }
+
             const refreshtoken  = await readrefreshtokenFromCosmosDB('"'+decrypted_text.toString()+'"');
-            console.log("decrypted_text",decrypted_text)
             console.log("refreshtoken", refreshtoken);
             const result = await msalService.acquireTokenByRefreshToken(refreshtoken);
             console.log("refresh", result);
