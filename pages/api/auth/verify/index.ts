@@ -48,7 +48,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             // oidがnullでない場合のみupdateTokenを呼び出す
             if (oid) {
                 console.log("start:updateRefreshToken");
-                await updateToken(oid, refreshToken, uuid);
+                // await updateToken(oid, refreshToken, uuid);
                 console.log("end:updateRefreshToken");
             } else {
                 console.log('oid is null or undefined');
