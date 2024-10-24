@@ -79,19 +79,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const decrypted = decipher.update(cipher_oid, 'hex', 'utf-8');
             const decrypted_text = decrypted + decipher.final('utf8');
             // const decrypted_text = decipher.final('utf-8');
-<<<<<<< HEAD
             console.log("decrypted_text", decrypted_text);
-=======
-            console.log(decrypted_text);
-            const decrypted_text_compared = "a4af6a32-b35b-424f-8ef2-1ca7fd1053a1"
-            // 一致しているか確認
-            if (decrypted_text === decrypted_text_compared) {
-                console.log("The texts are identical.");
-            } else {
-                console.log("The texts are different.");
-            }
-
->>>>>>> 72119eb69d31c9fc7717d65aba29b3d81275eebe
             const refreshtoken  = await readrefreshtokenFromCosmosDB('"'+decrypted_text.toString()+'"');
             console.log("refreshtoken", refreshtoken);
             const result = await msalService.acquireTokenByRefreshToken(refreshtoken);
