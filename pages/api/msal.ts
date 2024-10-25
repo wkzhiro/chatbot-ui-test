@@ -78,6 +78,7 @@ export class MsalService {
         };
         const result = await this._msalInstance.acquireTokenByRefreshToken(refreshTokenRequest);
         console.log("refreshTokenRequest",refreshTokenRequest)
+        console.log("result_acquireTokenByRefreshToken",result)
         if (result) {
             return result;
         }

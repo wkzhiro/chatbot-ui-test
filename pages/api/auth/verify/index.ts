@@ -83,7 +83,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
             const refreshtoken  = await readrefreshtokenFromCosmosDB('"'+decrypted_text.toString()+'"');
             console.log("refreshtoken", refreshtoken);
             const result = await msalService.acquireTokenByRefreshToken(refreshtoken);
-            console.log("refresh", result);
+            console.log("refresh_verify", result);
             
             res.status(200).json(result);
         } catch (error) {
