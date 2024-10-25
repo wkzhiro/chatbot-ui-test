@@ -76,6 +76,8 @@ export class MsalService {
             refreshToken: refreshToken,
             scopes: scopes ?? this._SCOPE,
         };
+        // キャッシュクリアする
+        this._msalInstance.clearCache();
         const result = await this._msalInstance.acquireTokenByRefreshToken(refreshTokenRequest);
         console.log("refreshTokenRequest",refreshTokenRequest)
         console.log("result_acquireTokenByRefreshToken",result)
