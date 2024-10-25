@@ -62,7 +62,8 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     } else if (req.method === 'PUT') {
         try {
             const json = req.body;
-            // const account = json.account as AccountInfo;
+            const account = json.account as AccountInfo;
+            console.log("account_put",account)
             const cipher_oid = json.oid as string
             // console.log("verify/account : ",account);
             // if (!account) {
