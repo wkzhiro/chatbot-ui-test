@@ -173,7 +173,8 @@ const Home = ({
     const handleJWTVerification = async () => {
       // jwtが期限切れの有無に関わらず、ローカルストレージにjwtがある場合、jwtを更新
       console.log("handleJWTVerification:jwt=",storedJwt);
-      if (storedJwt&&isTokenExpired(storedJwt)) {
+      // if (storedJwt&&isTokenExpired(storedJwt)) {
+      if (storedJwt) {
         const storedoid = localStorage.getItem('oid');
         console.log("handleJWTVerification_0:storedoid=",storedoid);
         if (storedoid) {
