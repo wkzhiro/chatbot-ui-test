@@ -52,7 +52,7 @@ export const Chatbar = () => {
 
   // 会話を_tsに基づいて並び替える
   const sortedConversations = useMemo(() => {
-    console.log('Sorting conversations:', conversations); // デバッグ用
+    // console.log('Sorting conversations:', conversations); // デバッグ用
     return [...conversations].sort((a, b) => {
       const tsA = a._ts || 0;
       const tsB = b._ts || 0;
@@ -61,7 +61,7 @@ export const Chatbar = () => {
   }, [conversations]);
 
   useEffect(() => {
-    console.log('Sorted conversations:', sortedConversations); // デバッグ用
+    // console.log('Sorted conversations:', sortedConversations); // デバッグ用
   }, [sortedConversations]);
   // トークンカウントの更新
   const handleApiKeyChange = useCallback(

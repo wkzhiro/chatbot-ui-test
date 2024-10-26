@@ -35,7 +35,7 @@ const handler = async (req: Request): Promise<Response> => {
         // }),
       },
     });
-    console.log("ttettte",key)
+    console.log("fetch_model_jwt",key)
 
 
     if (response.status === 401) {

@@ -97,17 +97,17 @@ const Home = ({
 
   const fetchData = async () => {
     let contextoid = oid
-    console.log("fetch_contextoid_original",oid)
+    // console.log("fetch_contextoid_original",oid)
     try {
       const key = localStorage.getItem('jwt');
-      console.log("fetchData_1:jwt(key)=",key,",oid=",contextoid);
+      // console.log("fetchData_1:jwt(key)=",key,",oid=",contextoid);
       // JWTがあるかどうかで判断する
       if (key !== undefined && key !== null) {
         // JWTトークンをデコード
         const decodedToken = jwtDecode<DecodedToken>(key);
         // `oid`フィールドを取得
         contextoid = decodedToken.oid;
-        console.log("fetchData_2:jwt=",jwt,",oid=",contextoid);
+        // console.log("fetchData_2:jwt=",jwt,",oid=",contextoid);
         const response = await fetch('/api/readallconversation_cosmos', {
           method: 'POST',
           headers: {
@@ -135,7 +135,7 @@ const Home = ({
   const setJWT = (jwt: string) => {
     console.log("setJWT")
     try{
-      console.log("setJWT",jwt)
+      // console.log("setJWT",jwt)
       dispatch({ field: 'jwt', value: jwt });
       localStorage.setItem('jwt', jwt);
     }catch(error){
@@ -146,13 +146,13 @@ const Home = ({
   const setRT = (oid: string) => {
     const crypto = require('crypto');
     const password = process.env.NEXT_PUBLIC_SALT as string;
-    console.log("password_home:",password);
+    // console.log("password_home:",password);
     const algorithm = 'aes-256-cbc';
     
     const cipher = crypto.createCipher(algorithm, password);
     const crypted = cipher.update(oid, 'utf-8', 'hex'); 
     const crypted_text = crypted + cipher.final('hex');
-    console.log("setRT_oud",crypted_text)
+    // console.log("setRT_oud",crypted_text)
     dispatch({ field: 'oid', value: crypted_text });
     localStorage.setItem('oid', crypted_text);
   };
@@ -168,23 +168,23 @@ const Home = ({
 
   useEffect(() => {
     const storedJwt = localStorage.getItem('jwt');
-    console.log("useeffect_storedJwt:", storedJwt, "useeffect_oid:",oid)
+    // console.log("useeffect_storedJwt:", storedJwt, "useeffect_oid:",oid)
 
     const handleJWTVerification = async () => {
       // jwtが期限切れの有無に関わらず、ローカルストレージにjwtがある場合、jwtを更新
-      console.log("handleJWTVerification:jwt=",storedJwt);
+      // console.log("handleJWTVerification:jwt=",storedJwt);
       // if (storedJwt&&isTokenExpired(storedJwt)) {
       if (storedJwt) {
         const storedoid = localStorage.getItem('oid');
-        console.log("handleJWTVerification_0:storedoid=",storedoid);
+        // console.log("handleJWTVerification_0:storedoid=",storedoid);
         if (storedoid) {
           console.log("effect_storedid")
           const newJwt = await refreshJWTbytoken(storedoid);
-          console.log("handleJWTVerification_1:jwt=",jwt,",oid=",oid, );
+          // console.log("handleJWTVerification_1:jwt=",jwt,",oid=",oid, );
           // setJWT(newJwt);
           dispatch({ field: 'jwt', value: newJwt });
           localStorage.setItem('jwt', newJwt);
-          console.log("handleJWTVerification_2:jwt=",newJwt,",oid=",oid);
+          // console.log("handleJWTVerification_2:jwt=",newJwt,",oid=",oid);
         } else {
           console.error('OID is missing in local storage.');
         }
@@ -195,12 +195,12 @@ const Home = ({
           const { data } = await axios.post('/api/auth/verify', { code });
           const newJwt = data.result.accessToken;
           const oid = data.oid;
-          console.log("handleJWTVerification_3:jwt=",jwt,",oid=",oid);
+          // console.log("handleJWTVerification_3:jwt=",jwt,",oid=",oid);
           // setJWT(newJwt);
           dispatch({ field: 'jwt', value: newJwt });
           localStorage.setItem('jwt', newJwt);
-          console.log("handleJWTVerification_4:jwt=",newJwt,",oid=",oid);
-          console.log("home_oid",oid)
+          // console.log("handleJWTVerification_4:jwt=",newJwt,",oid=",oid);
+          // console.log("home_oid",oid)
           if (oid) {
             setRT(oid);
           } else {
@@ -518,7 +518,7 @@ const Home = ({
 
     // localstorageから「選択したActive会話」の情報を取得
     const selectedConversation = localStorage.getItem('selectedConversation');
-    console.log("selectedConversation",selectedConversation)
+    // console.log("selectedConversation",selectedConversation)
 
     if (selectedConversation && isValidJson(selectedConversation)) {
       const parsedSelectedConversation: Conversation =
